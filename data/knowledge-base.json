@@ -1,0 +1,54 @@
+{
+  "inventory": [
+    {
+      "id": "inv-100",
+      "make": "Toyota",
+      "model": "RAV4",
+      "year": 2025,
+      "price": 39250,
+      "bodyType": "SUV",
+      "fuelType": "Hybrid",
+      "inStock": true
+    },
+    {
+      "id": "inv-101",
+      "make": "Honda",
+      "model": "CR-V",
+      "year": 2025,
+      "price": 37800,
+      "bodyType": "SUV",
+      "fuelType": "Gasoline",
+      "inStock": true
+    },
+    {
+      "id": "inv-102",
+      "make": "Mazda",
+      "model": "CX-30",
+      "year": 2024,
+      "price": 34120,
+      "bodyType": "SUV",
+      "fuelType": "Gasoline",
+      "inStock": true
+    },
+    {
+      "id": "inv-103",
+      "make": "Tesla",
+      "model": "Model 3",
+      "year": 2025,
+      "price": 48990,
+      "bodyType": "Sedan",
+      "fuelType": "Electric",
+      "inStock": false
+    }
+  ],
+  "hours": {
+    "salesWeekdays": "9:00 AM - 6:00 PM",
+    "serviceWeekdays": "8:00 AM - 5:30 PM",
+    "saturday": "10:00 AM - 4:00 PM",
+    "sunday": "Closed"
+  },
+  "promotions": [
+    "0.99% APR for up to 48 months on select SUVs.",
+    "Free first-year maintenance package on certified pre-owned vehicles."
+  ]
+}

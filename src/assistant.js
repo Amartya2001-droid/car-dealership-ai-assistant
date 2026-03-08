@@ -1,0 +1,142 @@
+const OpenAI = require('openai');
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+
+const config = require('./config');
+const { getKnowledgeBase, parsePreferences, findVehicleMatches } = require('./knowledgeBase');
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const personaStyles = {
+  sales_pro: 'Confident Sales Pro',
+  concierge: 'Friendly Concierge',
+  tech_expert: 'Tech Expert'
+};
+
+const moodFromText = (text = '') => {
+  const lower = text.toLowerCase();
+  if (/(angry|upset|frustrated|terrible|annoyed)/.test(lower)) return 'frustrated';
+  if (/(excited|awesome|great|love)/.test(lower)) return 'enthusiastic';
+  return 'neutral';
+};
+
+const classifyTopic = (text = '') => {
+  const lower = text.toLowerCase();
+  if (/test drive|appointment|book/.test(lower)) return 'test_drive';
+  if (/price|deal|finance|payment|quote/.test(lower)) return 'pricing';
+  if (/service|oil|repair|maintenance/.test(lower)) return 'service';
+  if (/inventory|available|in stock|have/.test(lower)) return 'inventory';
+  return 'general';
+};
+
+const inferUrgency = (text = '') => {
+  const lower = text.toLowerCase();
+  if (/(today|asap|urgent|immediately|right now)/.test(lower)) return 'high';
+  if (/(this week|soon|tomorrow)/.test(lower)) return 'medium';
+  return 'low';
+};
+
+const afterHoursStatus = () => {
+  const now = dayjs().tz(config.dealershipTimezone);
+  const hour = now.hour();
+  const weekday = now.day();
+  const isWeekend = weekday === 0 || weekday === 6;
+  const isAfterHours = isWeekend || hour < config.businessHoursStart || hour >= config.businessHoursEnd;
+
+  return {
+    isAfterHours,
+    now: now.format('dddd, MMMM D, YYYY h:mm A z')
+  };
+};
+
+const buildContext = (callerInput = '') => {
+  const kb = getKnowledgeBase();
+  const topic = classifyTopic(callerInput);
+  const urgency = inferUrgency(callerInput);
+  const mood = moodFromText(callerInput);
+  const preferences = parsePreferences(callerInput);
+  const matches = findVehicleMatches(preferences);
+
+  return { kb, topic, urgency, mood, preferences, matches };
+};
+
+const mockReply = ({ callerName, callerInput, persona, context }) => {
+  const status = afterHoursStatus();
+  const personaName = personaStyles[persona] || personaStyles.concierge;
+
+  if (context.topic === 'inventory' || context.matches.length > 0) {
+    const vehicle = context.matches[0];
+    if (vehicle) {
+      return `Hi ${callerName || 'there'}, this is your ${personaName}. We currently have a ${vehicle.year} ${vehicle.make} ${vehicle.model} at $${vehicle.price.toLocaleString()}. I can text you full specs and schedule a test drive when we open.`;
+    }
+  }
+
+  if (context.topic === 'service') {
+    return `Thanks for calling. Service hours are ${context.kb.hours.serviceWeekdays} weekdays, and I can queue your request now so our team calls you first thing next business day.`;
+  }
+
+  const hours = context.kb.hours || {};
+  return `Thanks for calling ${config.dealershipName}. We are currently ${status.isAfterHours ? 'closed' : 'open'} (${status.now}). Sales hours are ${hours.salesWeekdays || '9:00 AM - 6:00 PM weekdays'}. I can capture your details and have our team follow up next business morning.`;
+};
+
+const generateAiReply = async ({ callerName, callerInput, persona, context }) => {
+  if (config.useMockAi || !config.openaiApiKey) {
+    return mockReply({ callerName, callerInput, persona, context });
+  }
+
+  const client = new OpenAI({ apiKey: config.openaiApiKey });
+  const prompt = `
+You are an after-hours AI voice agent for ${config.dealershipName}.
+Persona: ${personaStyles[persona] || personaStyles.concierge}
+Caller name: ${callerName || 'Unknown'}
+Caller mood: ${context.mood}
+Topic: ${context.topic}
+Urgency: ${context.urgency}
+Inventory snapshot: ${JSON.stringify((context.kb.inventory || []).slice(0, 5))}
+Hours: ${JSON.stringify(context.kb.hours || {})}
+Promotions: ${(context.kb.promotions || []).join('; ')}
+Caller said: ${callerInput}
+
+Respond in 2-3 concise spoken sentences. Mention that follow-up occurs next business day if after-hours.
+`;
+
+  const result = await client.responses.create({
+    model: config.openAiModel,
+    input: prompt
+  });
+
+  return result.output_text || mockReply({ callerName, callerInput, persona, context });
+};
+
+const buildLeadRecord = ({ phone, callerName, callerInput, persona, consentFollowUp }) => {
+  const context = buildContext(callerInput);
+  const status = afterHoursStatus();
+
+  return {
+    id: `lead-${Date.now()}`,
+    phone,
+    callerName: callerName || null,
+    inquiry: callerInput,
+    persona: persona || 'concierge',
+    mood: context.mood,
+    topic: context.topic,
+    urgency: context.urgency,
+    recommendedVehicles: context.matches,
+    consentFollowUp: Boolean(consentFollowUp),
+    afterHours: status.isAfterHours,
+    createdAt: new Date().toISOString()
+  };
+};
+
+module.exports = {
+  personaStyles,
+  moodFromText,
+  classifyTopic,
+  inferUrgency,
+  afterHoursStatus,
+  buildContext,
+  generateAiReply,
+  buildLeadRecord
+};
