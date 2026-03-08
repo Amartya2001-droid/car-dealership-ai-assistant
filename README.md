@@ -37,6 +37,25 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
      }'
    ```
 
+## Daily GitHub Contribution Flow
+Run this once per day (or let automation run it) to guarantee a contribution commit:
+
+```bash
+npm run contrib
+```
+
+Optional note:
+
+```bash
+bash scripts/daily-contribution.sh "Implemented Day 2 calendar integration"
+```
+
+Behavior:
+- Appends a timestamp entry to `docs/progress/heartbeat.log`.
+- Creates a dated commit (`chore: daily progress YYYY-MM-DD`).
+- Pushes to `origin/<current-branch>` if a GitHub remote is configured.
+- If no remote is configured, it prints the exact `git remote add origin ...` command needed.
+
 ## Twilio Integration
 1. Buy/configure a Twilio phone number with Voice.
 2. Point Voice webhook to:
