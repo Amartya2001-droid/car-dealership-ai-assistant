@@ -3,10 +3,16 @@ const cors = require('cors');
 const twilio = require('twilio');
 
 const config = require('./config');
-const { appendLead, files, readJson } = require('./storage');
+const { appendLead, files, readJson, updateLeadById, updateAppointmentById } = require('./storage');
 const { generateAiReply, buildContext, buildLeadRecord, personaStyles } = require('./assistant');
 const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('./followUp');
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
+const { scheduleTestDrive } = require('./testDriveScheduler');
+
+const pushLifecycleEvent = (lead, status, note) => {
+  const lifecycle = Array.isArray(lead.lifecycle) ? lead.lifecycle : [];
+  return [...lifecycle, { status, at: new Date().toISOString(), note }];
+};
 
 const createApp = () => {
   const app = express();
@@ -64,12 +70,27 @@ const createApp = () => {
     });
 
     appendLead(lead);
+
+    let appointment = null;
+    if (lead.topic === 'test_drive') {
+      appointment = await scheduleTestDrive(lead);
+      const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
+      updateLeadById(lead.id, {
+        status: leadStatus,
+        appointmentId: appointment.id,
+        lifecycle: pushLifecycleEvent(lead, leadStatus, 'Test drive scheduling requested')
+      });
+    }
+
     if (lead.consentFollowUp) {
       queueFollowUp(lead, reply);
     }
 
     const twiml = new twilio.twiml.VoiceResponse();
     twiml.say(reply);
+    if (appointment) {
+      twiml.say('I have queued your test drive request and our team will confirm it next business day.');
+    }
     twiml.say('Thank you. We will follow up next business day. Goodbye.');
     twiml.hangup();
 
@@ -100,6 +121,18 @@ const createApp = () => {
     });
 
     appendLead(lead);
+    let responseLead = lead;
+
+    let appointment = null;
+    if (lead.topic === 'test_drive') {
+      appointment = await scheduleTestDrive(lead);
+      const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
+      responseLead = updateLeadById(lead.id, {
+        status: leadStatus,
+        appointmentId: appointment.id,
+        lifecycle: pushLifecycleEvent(lead, leadStatus, 'Test drive scheduling requested')
+      }) || lead;
+    }
 
     let followUp = null;
     if (lead.consentFollowUp) {
@@ -108,8 +141,9 @@ const createApp = () => {
 
     return res.json({
       assistantReply: reply,
-      lead,
-      followUp
+      lead: responseLead,
+      followUp,
+      appointment
     });
   });
 
@@ -124,6 +158,61 @@ const createApp = () => {
 
   app.get('/admin/followups', (_req, res) => {
     res.json({ followups: readJson(files.followups, []) });
+  });
+
+  app.get('/admin/appointments', (_req, res) => {
+    res.json({ appointments: readJson(files.appointments, []) });
+  });
+
+  app.post('/admin/test-drives/schedule', async (req, res) => {
+    const { leadId } = req.body;
+    if (!leadId) {
+      return res.status(400).json({ error: 'leadId is required' });
+    }
+
+    const leads = readJson(files.leads, []);
+    const lead = leads.find((item) => item.id === leadId);
+    if (!lead) {
+      return res.status(404).json({ error: 'lead not found' });
+    }
+
+    const appointment = await scheduleTestDrive(lead);
+    const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
+
+    const updatedLead = updateLeadById(lead.id, {
+      status: leadStatus,
+      appointmentId: appointment.id,
+      lifecycle: pushLifecycleEvent(lead, leadStatus, 'Scheduled via admin endpoint')
+    });
+
+    return res.json({ appointment, lead: updatedLead });
+  });
+
+  app.post('/admin/test-drives/:appointmentId/confirm', (req, res) => {
+    const { appointmentId } = req.params;
+    const { leadId } = req.body;
+
+    const appointment = updateAppointmentById(appointmentId, {
+      status: 'confirmed',
+      confirmedAt: new Date().toISOString()
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'appointment not found' });
+    }
+
+    let lead = null;
+    if (leadId) {
+      const current = readJson(files.leads, []).find((item) => item.id === leadId);
+      if (current) {
+        lead = updateLeadById(leadId, {
+          status: 'contacted',
+          lifecycle: pushLifecycleEvent(current, 'contacted', 'Appointment confirmed by staff')
+        });
+      }
+    }
+
+    return res.json({ appointment, lead });
   });
 
   app.post('/admin/run-followups', async (_req, res) => {

@@ -29,11 +29,13 @@ ensureDir(config.dataDir);
 const files = {
   leads: path.join(config.dataDir, 'leads.json'),
   followups: path.join(config.dataDir, 'followups.json'),
-  knowledge: path.join(config.dataDir, 'knowledge-base.json')
+  knowledge: path.join(config.dataDir, 'knowledge-base.json'),
+  appointments: path.join(config.dataDir, 'appointments.json')
 };
 
 ensureFile(files.leads, []);
 ensureFile(files.followups, []);
+ensureFile(files.appointments, []);
 ensureFile(files.knowledge, {
   inventory: [
     {
@@ -96,10 +98,28 @@ const appendRecord = (filePath, record) => {
   return record;
 };
 
+const updateRecordById = (filePath, id, updates = {}) => {
+  const records = readJson(filePath, []);
+  const index = records.findIndex((item) => item.id === id);
+  if (index === -1) return null;
+
+  records[index] = {
+    ...records[index],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+
+  writeJson(filePath, records);
+  return records[index];
+};
+
 module.exports = {
   files,
   readJson,
   writeJson,
   appendLead: (lead) => appendRecord(files.leads, lead),
-  appendFollowUp: (followup) => appendRecord(files.followups, followup)
+  appendFollowUp: (followup) => appendRecord(files.followups, followup),
+  appendAppointment: (appointment) => appendRecord(files.appointments, appointment),
+  updateLeadById: (id, updates) => updateRecordById(files.leads, id, updates),
+  updateAppointmentById: (id, updates) => updateRecordById(files.appointments, id, updates)
 };

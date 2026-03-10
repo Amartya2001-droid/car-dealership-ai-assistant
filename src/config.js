@@ -19,10 +19,15 @@ module.exports = {
   staffAlertPhone: process.env.STAFF_ALERT_PHONE || '+19025550101',
   followUpHour: Number(process.env.FOLLOW_UP_HOUR || 9),
   followUpMinute: Number(process.env.FOLLOW_UP_MINUTE || 15),
+  testDriveDurationMins: Number(process.env.TEST_DRIVE_DURATION_MINS || 45),
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID || '',
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     phoneNumber: process.env.TWILIO_PHONE_NUMBER || ''
+  },
+  googleCalendar: {
+    calendarId: process.env.GOOGLE_CALENDAR_ID || '',
+    accessToken: process.env.GOOGLE_ACCESS_TOKEN || ''
   },
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   useMockAi: resolveBoolean(process.env.USE_MOCK_AI, true),

@@ -125,6 +125,14 @@ const buildLeadRecord = ({ phone, callerName, callerInput, persona, consentFollo
     urgency: context.urgency,
     recommendedVehicles: context.matches,
     consentFollowUp: Boolean(consentFollowUp),
+    status: 'new',
+    lifecycle: [
+      {
+        status: 'new',
+        at: new Date().toISOString(),
+        note: 'Captured from incoming call'
+      }
+    ],
     afterHours: status.isAfterHours,
     createdAt: new Date().toISOString()
   };

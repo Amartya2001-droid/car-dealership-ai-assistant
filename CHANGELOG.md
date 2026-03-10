@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-09 (Day 2)
+- Added test-drive scheduling service with Google Calendar + mock fallback providers.
+- Added appointment persistence and admin appointment endpoints.
+- Added lead lifecycle status (`new`, `scheduled`, `pending_schedule`, `contacted`) with timeline updates.
+- Wired automatic scheduling for test-drive intents from Twilio and simulated calls.
+- Added tests for lifecycle defaults and preferred date/time parsing.
+
 ## 2026-03-08 (Day 1)
 - Initialized `car-dealership-ai-assistant` Node.js project.
 - Added Twilio voice webhooks and simulation endpoint.

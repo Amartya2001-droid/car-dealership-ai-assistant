@@ -2,7 +2,7 @@
 
 AI voice assistant for after-hours dealership calls. It answers inventory/service questions, captures leads, queues next-day follow-up messages, and supports Twilio voice integration.
 
-## Day 1 Scope (Completed)
+## Scope Through Day 2 (Completed)
 - Express server with Twilio Voice webhook endpoints.
 - Conversation logic with mood/topic/urgency detection.
 - Voice persona selector (`sales_pro`, `concierge`, `tech_expert`).
@@ -10,6 +10,8 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 - JSON data storage for leads and follow-ups.
 - Morning dispatch scheduler for staff digest + customer follow-up SMS.
 - Knowledge base snapshot API + website sync script.
+- Test-drive scheduling with Google Calendar provider + mock fallback.
+- Lead lifecycle status tracking and appointment confirmation endpoints.
 
 ## Quick Start (under 5 min)
 1. Install dependencies:
@@ -35,6 +37,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
        "persona":"sales_pro",
        "optInFollowUp":true
      }'
+   ```
+
+5. Optional one-command setup:
+   ```bash
+   bash scripts/setup.sh
    ```
 
 ## Daily GitHub Contribution Flow
@@ -75,6 +82,9 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `POST /simulate/call`
 - `GET /admin/leads`
 - `GET /admin/followups`
+- `GET /admin/appointments`
+- `POST /admin/test-drives/schedule`
+- `POST /admin/test-drives/:appointmentId/confirm`
 - `POST /admin/run-followups`
 - `POST /admin/knowledge/snapshot`
 
@@ -82,13 +92,18 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `data/leads.json`
 - `data/followups.json`
 - `data/knowledge-base.json`
+- `data/appointments.json`
 
 ## Next Planned Milestones
-- Day 2: Add test-drive scheduling via Google Calendar API.
 - Day 3: Add Supabase/Firestore persistence and dashboard skeleton.
 - Day 4: Add OpenAI Realtime voice mode + sentiment tuning.
 - Day 5: Add outbound follow-up personalization and multilingual support.
 - Day 6: Hardening, deployment pipeline, observability.
 - Day 7: End-to-end demo recording with call + follow-up proof.
+
+## Calendar Integration
+Scheduling supports two modes:
+- `mock_calendar` (default): writes appointment records locally.
+- `google_calendar`: set `GOOGLE_CALENDAR_ID` and `GOOGLE_ACCESS_TOKEN` in `.env`.
 
 See daily logs in [`docs/progress/`](docs/progress).
