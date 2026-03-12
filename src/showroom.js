@@ -20,8 +20,8 @@ const buildShowroomAsset = (vehicle, promotions = []) => {
   return {
     type: 'virtual_showroom',
     title: `${vehicle.year} ${vehicle.make} ${vehicle.model} Walkaround`,
-    brochureUrl: `${config.baseUrl}/showroom/${slug}/brochure`,
-    videoUrl: `${config.baseUrl}/showroom/${slug}/walkaround`,
+    brochureUrl: `${config.showroomAssetBaseUrl}/showroom/${slug}/brochure`,
+    videoUrl: `${config.showroomAssetBaseUrl}/showroom/${slug}/walkaround`,
     highlight: promotionText,
     generatedAt: new Date().toISOString()
   };
