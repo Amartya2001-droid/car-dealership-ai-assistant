@@ -14,6 +14,36 @@ const validateSimulatedCall = (payload = {}) => {
   };
 };
 
+const validateCallbackWindow = (payload = {}) => {
+  const errors = [];
+  const allowedLabels = ['morning', 'afternoon', 'evening'];
+
+  if (!payload.label) errors.push('label is required');
+  if (payload.startHour === undefined) errors.push('startHour is required');
+  if (payload.endHour === undefined) errors.push('endHour is required');
+
+  if (payload.label && !allowedLabels.includes(payload.label)) {
+    errors.push('label must be one of morning, afternoon, evening');
+  }
+
+  if (payload.startHour !== undefined && payload.endHour !== undefined) {
+    const startHour = Number(payload.startHour);
+    const endHour = Number(payload.endHour);
+
+    if (Number.isNaN(startHour) || Number.isNaN(endHour)) {
+      errors.push('startHour and endHour must be numbers');
+    } else if (startHour < 0 || endHour > 23 || startHour >= endHour) {
+      errors.push('startHour and endHour must form a valid hour range');
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
 module.exports = {
-  validateSimulatedCall
+  validateSimulatedCall,
+  validateCallbackWindow
 };
