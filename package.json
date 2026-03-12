@@ -12,7 +12,8 @@
     "sync": "node scripts/sync-knowledge.js",
     "contrib": "bash scripts/daily-contribution.sh",
     "seed:demo": "node scripts/seed-demo-data.js",
-    "smoke": "bash scripts/smoke-check.sh"
+    "smoke": "bash scripts/smoke-check.sh",
+    "summary": "node scripts/print-summary.js"
   },
   "keywords": [],
   "author": "",
