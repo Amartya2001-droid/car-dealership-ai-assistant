@@ -7,6 +7,7 @@ const timezone = require('dayjs/plugin/timezone');
 const { inferUrgency, classifyTopic, moodFromText, buildLeadRecord, extractCallbackWindow } = require('../src/assistant');
 const { parsePreferences, findVehicleMatches } = require('../src/knowledgeBase');
 const { parsePreferredDateTime } = require('../src/testDriveScheduler');
+const { validateSimulatedCall } = require('../src/validation');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,4 +66,15 @@ test('extractCallbackWindow detects afternoon preference', () => {
   assert.equal(callbackWindow.label, 'afternoon');
   assert.equal(callbackWindow.startHour, 12);
   assert.equal(callbackWindow.endHour, 17);
+});
+
+test('validateSimulatedCall rejects unsupported personas', () => {
+  const result = validateSimulatedCall({
+    phone: '+19025550000',
+    message: 'Need pricing info',
+    persona: 'invalid'
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.errors[0], /persona must be one of/);
 });
