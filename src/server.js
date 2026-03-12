@@ -9,6 +9,7 @@ const { generateAiReply, buildContext, buildLeadRecord, personaStyles } = requir
 const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('./followUp');
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
 const { scheduleTestDrive } = require('./testDriveScheduler');
+const { validateSimulatedCall } = require('./validation');
 
 const pushLifecycleEvent = (lead, status, note) => {
   const lifecycle = Array.isArray(lead.lifecycle) ? lead.lifecycle : [];
@@ -127,8 +128,9 @@ const createApp = () => {
   app.post('/simulate/call', async (req, res) => {
     const { phone, callerName, message, persona = 'concierge', optInFollowUp = true } = req.body;
 
-    if (!phone || !message) {
-      return res.status(400).json({ error: 'phone and message are required' });
+    const validation = validateSimulatedCall({ phone, message, persona });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors.join(', ') });
     }
 
     const context = buildContext(message);
