@@ -9,7 +9,7 @@ const { generateAiReply, buildContext, buildLeadRecord, personaStyles } = requir
 const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('./followUp');
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
 const { scheduleTestDrive } = require('./testDriveScheduler');
-const { validateSimulatedCall } = require('./validation');
+const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
 
 const pushLifecycleEvent = (lead, status, note) => {
   const lifecycle = Array.isArray(lead.lifecycle) ? lead.lifecycle : [];
@@ -268,8 +268,9 @@ const createApp = () => {
     const { leadId } = req.params;
     const { label, startHour, endHour } = req.body;
 
-    if (!label || startHour === undefined || endHour === undefined) {
-      return res.status(400).json({ error: 'label, startHour, and endHour are required' });
+    const validation = validateCallbackWindow({ label, startHour, endHour });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.errors.join(', ') });
     }
 
     const current = readJson(files.leads, []).find((item) => item.id === leadId);
