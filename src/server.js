@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const twilio = require('twilio');
+const pkg = require('../package.json');
 
 const config = require('./config');
 const { appendLead, files, readJson, updateLeadById, updateAppointmentById, summarizeLeads } = require('./storage');
@@ -22,7 +23,12 @@ const createApp = () => {
   app.use(express.json());
 
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'car-dealership-ai-assistant', time: new Date().toISOString() });
+    res.json({
+      status: 'ok',
+      service: 'car-dealership-ai-assistant',
+      version: pkg.version,
+      time: new Date().toISOString()
+    });
   });
 
   app.get('/config/personas', (_req, res) => {
