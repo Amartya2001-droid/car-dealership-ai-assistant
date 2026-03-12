@@ -3,7 +3,7 @@ const cors = require('cors');
 const twilio = require('twilio');
 
 const config = require('./config');
-const { appendLead, files, readJson, updateLeadById, updateAppointmentById } = require('./storage');
+const { appendLead, files, readJson, updateLeadById, updateAppointmentById, summarizeLeads } = require('./storage');
 const { generateAiReply, buildContext, buildLeadRecord, personaStyles } = require('./assistant');
 const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('./followUp');
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
@@ -164,6 +164,26 @@ const createApp = () => {
     res.json({ appointments: readJson(files.appointments, []) });
   });
 
+  app.get('/admin/summary', (_req, res) => {
+    const leads = readJson(files.leads, []);
+    const appointments = readJson(files.appointments, []);
+    const followups = readJson(files.followups, []);
+
+    return res.json({
+      leads: summarizeLeads(leads),
+      appointments: {
+        total: appointments.length,
+        confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+        pending: appointments.filter((item) => item.status !== 'confirmed').length
+      },
+      followups: {
+        total: followups.length,
+        queued: followups.filter((item) => item.status === 'queued').length,
+        sent: followups.filter((item) => item.status === 'sent').length
+      }
+    });
+  });
+
   app.post('/admin/test-drives/schedule', async (req, res) => {
     const { leadId } = req.body;
     if (!leadId) {
@@ -213,6 +233,33 @@ const createApp = () => {
     }
 
     return res.json({ appointment, lead });
+  });
+
+  app.post('/admin/leads/:leadId/callback-window', (req, res) => {
+    const { leadId } = req.params;
+    const { label, startHour, endHour } = req.body;
+
+    if (!label || startHour === undefined || endHour === undefined) {
+      return res.status(400).json({ error: 'label, startHour, and endHour are required' });
+    }
+
+    const current = readJson(files.leads, []).find((item) => item.id === leadId);
+    if (!current) {
+      return res.status(404).json({ error: 'lead not found' });
+    }
+
+    const callbackWindow = {
+      label,
+      startHour: Number(startHour),
+      endHour: Number(endHour)
+    };
+
+    const lead = updateLeadById(leadId, {
+      callbackWindow,
+      lifecycle: pushLifecycleEvent(current, current.status, `Callback window updated to ${label}`)
+    });
+
+    return res.json({ lead });
   });
 
   app.post('/admin/run-followups', async (_req, res) => {

@@ -6,6 +6,7 @@
 - `Knowledge Base`: local JSON snapshot of inventory, hours, and promotions.
 - `Lead Store`: lead records and follow-up queue persisted in JSON.
 - `Appointment Store`: test-drive appointments persisted in JSON or mirrored to Google Calendar.
+- `Showroom Asset Builder`: generates brochure and walkaround links for recommended inventory.
 - `Dispatch Scheduler`: weekday cron job for next-morning digest and opt-in follow-up texts.
 
 ## Call Flow
@@ -15,7 +16,8 @@
 4. Assistant generates response and lead record.
 5. If caller opts in, follow-up is queued.
 6. For test-drive intents, appointment is scheduled and linked to lead lifecycle.
-7. On weekday schedule, digest/follow-up dispatch runs.
+7. Callback preference and showroom assets are stored with the lead when detected.
+8. On weekday schedule, digest/follow-up dispatch runs.
 
 ## Feature Mapping
 - Smart Call Flow: Twilio webhook + simulation endpoint.
@@ -28,6 +30,8 @@
 - Vehicle Matchmaker: preference parser + inventory matching.
 - Mood Detector: keyword-based sentiment class.
 - Schedule Test Drive: appointment scheduling via mock or Google Calendar provider.
+- Callback Window Preference: extracts morning/afternoon/evening contact request.
+- Virtual Showroom Mode: attaches brochure and walkaround links for best-match inventory.
 
 ## Day 1-2 Constraints
 - Storage uses JSON files for speed.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-11 (Day 3)
+- Added callback window extraction so leads can store preferred contact times.
+- Added virtual showroom asset generation for matched vehicle leads.
+- Added admin summary endpoint for lead, appointment, and follow-up counts.
+- Enriched follow-up messages with callback preferences and showroom links.
+- Added tests covering callback preference extraction and enriched lead records.
+
 ## 2026-03-09 (Day 2)
 - Added test-drive scheduling service with Google Calendar + mock fallback providers.
 - Added appointment persistence and admin appointment endpoints.

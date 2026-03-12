@@ -2,7 +2,7 @@
 
 AI voice assistant for after-hours dealership calls. It answers inventory/service questions, captures leads, queues next-day follow-up messages, and supports Twilio voice integration.
 
-## Scope Through Day 2 (Completed)
+## Scope Through Day 3 (Completed)
 - Express server with Twilio Voice webhook endpoints.
 - Conversation logic with mood/topic/urgency detection.
 - Voice persona selector (`sales_pro`, `concierge`, `tech_expert`).
@@ -12,6 +12,9 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 - Knowledge base snapshot API + website sync script.
 - Test-drive scheduling with Google Calendar provider + mock fallback.
 - Lead lifecycle status tracking and appointment confirmation endpoints.
+- Callback window extraction for next-business-day outreach.
+- Virtual showroom brochure/walkaround links attached to matched vehicle leads.
+- Admin summary endpoint for triaging leads, appointments, and follow-up backlog.
 
 ## Quick Start (under 5 min)
 1. Install dependencies:
@@ -83,8 +86,10 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `GET /admin/leads`
 - `GET /admin/followups`
 - `GET /admin/appointments`
+- `GET /admin/summary`
 - `POST /admin/test-drives/schedule`
 - `POST /admin/test-drives/:appointmentId/confirm`
+- `POST /admin/leads/:leadId/callback-window`
 - `POST /admin/run-followups`
 - `POST /admin/knowledge/snapshot`
 
@@ -95,11 +100,10 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `data/appointments.json`
 
 ## Next Planned Milestones
-- Day 3: Add Supabase/Firestore persistence and dashboard skeleton.
-- Day 4: Add OpenAI Realtime voice mode + sentiment tuning.
-- Day 5: Add outbound follow-up personalization and multilingual support.
-- Day 6: Hardening, deployment pipeline, observability.
-- Day 7: End-to-end demo recording with call + follow-up proof.
+- Day 4: Add Supabase/Firestore persistence and dashboard skeleton.
+- Day 5: Add OpenAI Realtime voice mode + sentiment tuning.
+- Day 6: Add outbound follow-up personalization and multilingual support.
+- Day 7: Hardening, deployment pipeline, observability, and demo proof.
 
 ## Calendar Integration
 Scheduling supports two modes:

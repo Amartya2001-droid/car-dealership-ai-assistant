@@ -5,6 +5,7 @@ const timezone = require('dayjs/plugin/timezone');
 
 const config = require('./config');
 const { getKnowledgeBase, parsePreferences, findVehicleMatches } = require('./knowledgeBase');
+const { buildShowroomAsset } = require('./showroom');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +39,36 @@ const inferUrgency = (text = '') => {
   return 'low';
 };
 
+const extractCallbackWindow = (text = '') => {
+  const lower = text.toLowerCase();
+
+  if (/morning|before noon|early/.test(lower)) {
+    return {
+      label: 'morning',
+      startHour: 9,
+      endHour: 12
+    };
+  }
+
+  if (/afternoon|after lunch/.test(lower)) {
+    return {
+      label: 'afternoon',
+      startHour: 12,
+      endHour: 17
+    };
+  }
+
+  if (/evening|after work|after 5/.test(lower)) {
+    return {
+      label: 'evening',
+      startHour: 17,
+      endHour: 19
+    };
+  }
+
+  return null;
+};
+
 const afterHoursStatus = () => {
   const now = dayjs().tz(config.dealershipTimezone);
   const hour = now.hour();
@@ -58,8 +89,10 @@ const buildContext = (callerInput = '') => {
   const mood = moodFromText(callerInput);
   const preferences = parsePreferences(callerInput);
   const matches = findVehicleMatches(preferences);
+  const callbackWindow = extractCallbackWindow(callerInput);
+  const showroomAsset = buildShowroomAsset(matches[0], kb.promotions || []);
 
-  return { kb, topic, urgency, mood, preferences, matches };
+  return { kb, topic, urgency, mood, preferences, matches, callbackWindow, showroomAsset };
 };
 
 const mockReply = ({ callerName, callerInput, persona, context }) => {
@@ -124,6 +157,8 @@ const buildLeadRecord = ({ phone, callerName, callerInput, persona, consentFollo
     topic: context.topic,
     urgency: context.urgency,
     recommendedVehicles: context.matches,
+    callbackWindow: context.callbackWindow,
+    showroomAsset: context.showroomAsset,
     consentFollowUp: Boolean(consentFollowUp),
     status: 'new',
     lifecycle: [
@@ -143,6 +178,7 @@ module.exports = {
   moodFromText,
   classifyTopic,
   inferUrgency,
+  extractCallbackWindow,
   afterHoursStatus,
   buildContext,
   generateAiReply,

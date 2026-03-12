@@ -113,6 +113,27 @@ const updateRecordById = (filePath, id, updates = {}) => {
   return records[index];
 };
 
+const summarizeLeads = (leads = []) => {
+  const summary = {
+    total: leads.length,
+    byStatus: {},
+    byTopic: {},
+    byUrgency: {},
+    callbacksRequested: 0
+  };
+
+  for (const lead of leads) {
+    summary.byStatus[lead.status] = (summary.byStatus[lead.status] || 0) + 1;
+    summary.byTopic[lead.topic] = (summary.byTopic[lead.topic] || 0) + 1;
+    summary.byUrgency[lead.urgency] = (summary.byUrgency[lead.urgency] || 0) + 1;
+    if (lead.callbackWindow) {
+      summary.callbacksRequested += 1;
+    }
+  }
+
+  return summary;
+};
+
 module.exports = {
   files,
   readJson,
@@ -121,5 +142,6 @@ module.exports = {
   appendFollowUp: (followup) => appendRecord(files.followups, followup),
   appendAppointment: (appointment) => appendRecord(files.appointments, appointment),
   updateLeadById: (id, updates) => updateRecordById(files.leads, id, updates),
-  updateAppointmentById: (id, updates) => updateRecordById(files.appointments, id, updates)
+  updateAppointmentById: (id, updates) => updateRecordById(files.appointments, id, updates),
+  summarizeLeads
 };

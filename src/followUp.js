@@ -87,7 +87,13 @@ const sendCustomerFollowUps = async (followups) => {
 
 const queueFollowUp = (lead, assistantReply) => {
   const followups = readJson(files.followups, []);
-  const message = `Hi ${lead.callerName || ''}, thanks for contacting ${config.dealershipName}. Based on your request, our team can help with ${lead.topic}. Reply to this text to continue. Ref: ${lead.id}`.trim();
+  const callbackText = lead.callbackWindow
+    ? ` Preferred callback window: ${lead.callbackWindow.label}.`
+    : '';
+  const showroomText = lead.showroomAsset
+    ? ` Virtual showroom: ${lead.showroomAsset.videoUrl}`
+    : '';
+  const message = `Hi ${lead.callerName || ''}, thanks for contacting ${config.dealershipName}. Based on your request, our team can help with ${lead.topic}.${callbackText} Reply to this text to continue. Ref: ${lead.id}.${showroomText}`.trim();
 
   const record = {
     id: `followup-${Date.now()}`,
@@ -95,6 +101,8 @@ const queueFollowUp = (lead, assistantReply) => {
     phone: lead.phone,
     message,
     assistantReply,
+    callbackWindow: lead.callbackWindow || null,
+    showroomAsset: lead.showroomAsset || null,
     status: 'queued',
     createdAt: new Date().toISOString()
   };
