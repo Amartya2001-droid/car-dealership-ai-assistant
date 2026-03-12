@@ -47,6 +47,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    bash scripts/setup.sh
    ```
 
+6. Optional demo seed data:
+   ```bash
+   npm run seed:demo
+   ```
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
