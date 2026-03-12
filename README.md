@@ -52,6 +52,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    npm run seed:demo
    ```
 
+7. Optional local smoke check:
+   ```bash
+   npm run smoke
+   ```
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
