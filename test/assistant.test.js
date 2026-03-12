@@ -8,6 +8,7 @@ const { inferUrgency, classifyTopic, moodFromText, buildLeadRecord, extractCallb
 const { parsePreferences, findVehicleMatches } = require('../src/knowledgeBase');
 const { parsePreferredDateTime } = require('../src/testDriveScheduler');
 const { validateSimulatedCall } = require('../src/validation');
+const { buildShowroomAsset } = require('../src/showroom');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -77,4 +78,15 @@ test('validateSimulatedCall rejects unsupported personas', () => {
 
   assert.equal(result.valid, false);
   assert.match(result.errors[0], /persona must be one of/);
+});
+
+test('buildShowroomAsset produces brochure and video links', () => {
+  const asset = buildShowroomAsset({
+    year: 2025,
+    make: 'Honda',
+    model: 'CR-V'
+  });
+
+  assert.match(asset.brochureUrl, /showroom\/2025-honda-cr-v\/brochure/);
+  assert.match(asset.videoUrl, /showroom\/2025-honda-cr-v\/walkaround/);
 });
