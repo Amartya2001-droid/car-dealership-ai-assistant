@@ -20,6 +20,18 @@ curl -X POST http://localhost:3000/simulate/call \
 curl http://localhost:3000/admin/summary
 ```
 
+## Fetch Showroom Brochure Metadata
+
+```bash
+curl http://localhost:3000/showroom/2025-honda-cr-v/brochure
+```
+
+## Fetch Showroom Walkaround Metadata
+
+```bash
+curl http://localhost:3000/showroom/2025-honda-cr-v/walkaround
+```
+
 ## Update a Lead Callback Window
 
 ```bash
