@@ -7,7 +7,7 @@ const timezone = require('dayjs/plugin/timezone');
 const { inferUrgency, classifyTopic, moodFromText, buildLeadRecord, extractCallbackWindow } = require('../src/assistant');
 const { parsePreferences, findVehicleMatches } = require('../src/knowledgeBase');
 const { parsePreferredDateTime } = require('../src/testDriveScheduler');
-const { validateSimulatedCall } = require('../src/validation');
+const { validateSimulatedCall, validateCallbackWindow } = require('../src/validation');
 const { buildShowroomAsset } = require('../src/showroom');
 
 dayjs.extend(utc);
@@ -89,4 +89,15 @@ test('buildShowroomAsset produces brochure and video links', () => {
 
   assert.match(asset.brochureUrl, /showroom\/2025-honda-cr-v\/brochure/);
   assert.match(asset.videoUrl, /showroom\/2025-honda-cr-v\/walkaround/);
+});
+
+test('validateCallbackWindow rejects inverted hour ranges', () => {
+  const result = validateCallbackWindow({
+    label: 'afternoon',
+    startHour: 18,
+    endHour: 12
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.errors[0], /valid hour range/);
 });
