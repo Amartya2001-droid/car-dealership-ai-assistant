@@ -35,6 +35,27 @@ const createApp = () => {
     res.json({ personas: personaStyles });
   });
 
+  app.get('/showroom/:slug/brochure', (req, res) => {
+    const { slug } = req.params;
+    res.json({
+      slug,
+      type: 'brochure',
+      title: `Digital brochure for ${slug}`,
+      downloadUrl: `${config.baseUrl}/assets/${slug}.pdf`,
+      generatedAt: new Date().toISOString()
+    });
+  });
+
+  app.get('/showroom/:slug/walkaround', (req, res) => {
+    const { slug } = req.params;
+    res.json({
+      slug,
+      type: 'walkaround',
+      videoUrl: `${config.baseUrl}/assets/${slug}.mp4`,
+      generatedAt: new Date().toISOString()
+    });
+  });
+
   app.post('/webhooks/twilio/voice', (req, res) => {
     const voiceResponse = new twilio.twiml.VoiceResponse();
     const gather = voiceResponse.gather({
