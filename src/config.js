@@ -9,6 +9,7 @@ const resolveBoolean = (value, fallback = false) => {
 module.exports = {
   port: Number(process.env.PORT || 3000),
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+  showroomAssetBaseUrl: process.env.SHOWROOM_ASSET_BASE_URL || process.env.BASE_URL || 'http://localhost:3000',
   nodeEnv: process.env.NODE_ENV || 'development',
   openAiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   dealershipName: process.env.DEALERSHIP_NAME || 'Northstar Auto Group',
