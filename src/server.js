@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const twilio = require('twilio');
+const path = require('path');
 const pkg = require('../package.json');
 
 const config = require('./config');
@@ -22,6 +23,7 @@ const createApp = () => {
   app.use(cors());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  app.use('/dashboard-assets', express.static(path.join(__dirname, '..', 'public')));
 
   app.get('/health', (_req, res) => {
     res.json({
@@ -34,6 +36,10 @@ const createApp = () => {
 
   app.get('/config/personas', (_req, res) => {
     res.json({ personas: personaStyles });
+  });
+
+  app.get('/dashboard', (_req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
   });
 
   app.get('/showroom/:slug/brochure', (req, res) => {

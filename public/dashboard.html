@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dealership Ops Dashboard</title>
+    <link rel="stylesheet" href="/dashboard-assets/dashboard.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Northstar Auto Group</p>
+          <h1>After-Hours AI Operations</h1>
+          <p class="subcopy">
+            Live monitoring for leads, appointments, showroom assets, and follow-up workload.
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-card">
+            <span class="meta-label">Refresh</span>
+            <strong>30 sec</strong>
+          </div>
+          <div class="meta-card">
+            <span class="meta-label">Source</span>
+            <strong>Local API</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Lead Feed</h2>
+            <span id="lead-count" class="pill">0 leads</span>
+          </div>
+          <div id="lead-feed" class="feed"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Appointments</h2>
+            <span id="appointment-count" class="pill">0 appointments</span>
+          </div>
+          <div id="appointment-feed" class="feed"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Follow-Ups</h2>
+            <span id="followup-count" class="pill">0 queued</span>
+          </div>
+          <div id="followup-feed" class="feed"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Topics & Urgency</h2>
+            <span class="pill">Auto-summary</span>
+          </div>
+          <div id="summary-breakdown" class="breakdown"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/dashboard-assets/dashboard.js"></script>
+  </body>
+</html>

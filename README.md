@@ -98,6 +98,7 @@ Behavior:
 The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 
 ## API Endpoints
+- `GET /dashboard`
 - `GET /health`
 - `GET /config/personas`
 - `POST /webhooks/twilio/voice`
