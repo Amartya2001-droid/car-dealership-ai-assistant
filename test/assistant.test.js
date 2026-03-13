@@ -101,3 +101,13 @@ test('validateCallbackWindow rejects inverted hour ranges', () => {
   assert.equal(result.valid, false);
   assert.match(result.errors[0], /valid hour range/);
 });
+
+test('buildLeadRecord falls back to configured default persona', () => {
+  const lead = buildLeadRecord({
+    phone: '+19025550001',
+    callerInput: 'Need help with pricing',
+    consentFollowUp: false
+  });
+
+  assert.equal(lead.persona, 'concierge');
+});
