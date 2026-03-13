@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-13 (Dashboard)
+- Added a staff-facing monitoring dashboard at `GET /dashboard`.
+- Added a styled static UI for summary cards, recent leads, appointments, and follow-up queue visibility.
+- Served dashboard assets through Express so the dashboard ships with the API.
+- Updated README and architecture docs to include dashboard usage.
+
 ## 2026-03-11 (Day 3)
 - Added callback window extraction so leads can store preferred contact times.
 - Added virtual showroom asset generation for matched vehicle leads.

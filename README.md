@@ -42,6 +42,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
      }'
    ```
 
+5. Open the monitoring dashboard:
+   ```bash
+   open http://localhost:3000/dashboard
+   ```
+
 5. Optional one-command setup:
    ```bash
    bash scripts/setup.sh
@@ -119,6 +124,13 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `data/followups.json`
 - `data/knowledge-base.json`
 - `data/appointments.json`
+
+## Dashboard
+The monitoring UI at `/dashboard` shows:
+- lead volume and callback demand
+- recent leads with intent and callback preference
+- recent appointments and follow-up queue
+- topic, status, and urgency breakdowns
 
 ## Next Planned Milestones
 - Day 4: Add Supabase/Firestore persistence and dashboard skeleton.

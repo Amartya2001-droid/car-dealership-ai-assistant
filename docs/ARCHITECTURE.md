@@ -7,6 +7,7 @@
 - `Lead Store`: lead records and follow-up queue persisted in JSON.
 - `Appointment Store`: test-drive appointments persisted in JSON or mirrored to Google Calendar.
 - `Showroom Asset Builder`: generates brochure and walkaround links for recommended inventory.
+- `Operations Dashboard`: static monitoring UI backed by existing admin endpoints.
 - `Dispatch Scheduler`: weekday cron job for next-morning digest and opt-in follow-up texts.
 
 ## Call Flow
@@ -32,6 +33,7 @@
 - Schedule Test Drive: appointment scheduling via mock or Google Calendar provider.
 - Callback Window Preference: extracts morning/afternoon/evening contact request.
 - Virtual Showroom Mode: attaches brochure and walkaround links for best-match inventory.
+- Monitoring Dashboard: staff-facing board for summary metrics and recent operational activity.
 
 ## Day 1-2 Constraints
 - Storage uses JSON files for speed.
