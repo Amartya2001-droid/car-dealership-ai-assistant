@@ -13,6 +13,7 @@ module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
   openAiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   dealershipName: process.env.DEALERSHIP_NAME || 'Northstar Auto Group',
+  defaultPersona: process.env.DEFAULT_PERSONA || 'concierge',
   dealershipTimezone: process.env.DEALERSHIP_TIMEZONE || 'America/Halifax',
   businessHoursStart: Number(process.env.BUSINESS_HOURS_START || 9),
   businessHoursEnd: Number(process.env.BUSINESS_HOURS_END || 18),
