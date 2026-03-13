@@ -78,7 +78,7 @@ const createApp = () => {
     const speechResult = req.body.SpeechResult || 'No speech captured.';
     const phone = req.body.From || 'unknown';
     const callerName = req.body.CallerName || null;
-    const persona = req.query.persona || 'concierge';
+    const persona = req.query.persona || config.defaultPersona;
     const followUpOptIn = /yes|text me|follow up|contact me/i.test(speechResult);
 
     const context = buildContext(speechResult);
@@ -126,7 +126,7 @@ const createApp = () => {
   });
 
   app.post('/simulate/call', async (req, res) => {
-    const { phone, callerName, message, persona = 'concierge', optInFollowUp = true } = req.body;
+    const { phone, callerName, message, persona = config.defaultPersona, optInFollowUp = true } = req.body;
 
     const validation = validateSimulatedCall({ phone, message, persona });
     if (!validation.valid) {

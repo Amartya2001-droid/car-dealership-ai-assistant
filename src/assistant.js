@@ -97,7 +97,7 @@ const buildContext = (callerInput = '') => {
 
 const mockReply = ({ callerName, callerInput, persona, context }) => {
   const status = afterHoursStatus();
-  const personaName = personaStyles[persona] || personaStyles.concierge;
+  const personaName = personaStyles[persona] || personaStyles[config.defaultPersona] || personaStyles.concierge;
 
   if (context.topic === 'inventory' || context.matches.length > 0) {
     const vehicle = context.matches[0];
@@ -122,7 +122,7 @@ const generateAiReply = async ({ callerName, callerInput, persona, context }) =>
   const client = new OpenAI({ apiKey: config.openaiApiKey });
   const prompt = `
 You are an after-hours AI voice agent for ${config.dealershipName}.
-Persona: ${personaStyles[persona] || personaStyles.concierge}
+Persona: ${personaStyles[persona] || personaStyles[config.defaultPersona] || personaStyles.concierge}
 Caller name: ${callerName || 'Unknown'}
 Caller mood: ${context.mood}
 Topic: ${context.topic}
@@ -152,7 +152,7 @@ const buildLeadRecord = ({ phone, callerName, callerInput, persona, consentFollo
     phone,
     callerName: callerName || null,
     inquiry: callerInput,
-    persona: persona || 'concierge',
+    persona: persona || config.defaultPersona,
     mood: context.mood,
     topic: context.topic,
     urgency: context.urgency,
