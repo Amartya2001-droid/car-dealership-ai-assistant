@@ -62,6 +62,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    npm run summary
    ```
 
+9. Optional lead export:
+   ```bash
+   npm run export:leads
+   ```
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
