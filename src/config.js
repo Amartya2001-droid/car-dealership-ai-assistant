@@ -10,6 +10,7 @@ module.exports = {
   port: Number(process.env.PORT || 3000),
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
   showroomAssetBaseUrl: process.env.SHOWROOM_ASSET_BASE_URL || process.env.BASE_URL || 'http://localhost:3000',
+  storageProvider: process.env.STORAGE_PROVIDER || 'local_json',
   nodeEnv: process.env.NODE_ENV || 'development',
   openAiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   dealershipName: process.env.DEALERSHIP_NAME || 'Northstar Auto Group',
@@ -30,6 +31,10 @@ module.exports = {
   googleCalendar: {
     calendarId: process.env.GOOGLE_CALENDAR_ID || '',
     accessToken: process.env.GOOGLE_ACCESS_TOKEN || ''
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL || '',
+    anonKey: process.env.SUPABASE_ANON_KEY || ''
   },
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   useMockAi: resolveBoolean(process.env.USE_MOCK_AI, true),
