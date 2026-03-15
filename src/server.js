@@ -11,6 +11,7 @@ const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('.
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
 const { scheduleTestDrive } = require('./testDriveScheduler');
 const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
+const { getPersistenceStatus } = require('./persistence');
 
 const pushLifecycleEvent = (lead, status, note) => {
   const lifecycle = Array.isArray(lead.lifecycle) ? lead.lifecycle : [];
@@ -36,6 +37,15 @@ const createApp = () => {
 
   app.get('/config/personas', (_req, res) => {
     res.json({ personas: personaStyles });
+  });
+
+  app.get('/admin/runtime', (_req, res) => {
+    res.json({
+      version: pkg.version,
+      storage: getPersistenceStatus(),
+      timezone: config.dealershipTimezone,
+      defaultPersona: config.defaultPersona
+    });
   });
 
   app.get('/dashboard', (_req, res) => {
