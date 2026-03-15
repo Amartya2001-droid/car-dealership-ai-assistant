@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-15 (Persistence Prep)
+- Added Supabase environment placeholders and runtime storage-provider config.
+- Added a persistence status helper and `GET /admin/runtime` endpoint.
+- Added an environment validation script (`npm run check:env`).
+- Added Supabase setup notes and updated README usage.
+
 ## 2026-03-13 (Dashboard)
 - Added a staff-facing monitoring dashboard at `GET /dashboard`.
 - Added a styled static UI for summary cards, recent leads, appointments, and follow-up queue visibility.

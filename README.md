@@ -72,6 +72,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    npm run export:leads
    ```
 
+10. Optional environment validation:
+   ```bash
+   npm run check:env
+   ```
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
@@ -106,6 +111,7 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 - `GET /dashboard`
 - `GET /health`
 - `GET /config/personas`
+- `GET /admin/runtime`
 - `POST /webhooks/twilio/voice`
 - `POST /webhooks/twilio/voice/collect`
 - `POST /simulate/call`
@@ -131,6 +137,9 @@ The monitoring UI at `/dashboard` shows:
 - recent leads with intent and callback preference
 - recent appointments and follow-up queue
 - topic, status, and urgency breakdowns
+
+## Runtime Status
+Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.
 
 ## Next Planned Milestones
 - Day 4: Add Supabase/Firestore persistence and dashboard skeleton.
