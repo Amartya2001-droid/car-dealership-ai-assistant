@@ -3,6 +3,7 @@ const leadFeedEl = document.getElementById('lead-feed');
 const appointmentFeedEl = document.getElementById('appointment-feed');
 const followupFeedEl = document.getElementById('followup-feed');
 const summaryBreakdownEl = document.getElementById('summary-breakdown');
+const runtimeStatusEl = document.getElementById('runtime-status');
 const leadSearchEl = document.getElementById('lead-search');
 const topicFilterEl = document.getElementById('topic-filter');
 const statusFilterEl = document.getElementById('status-filter');
@@ -108,18 +109,20 @@ const renderLeads = () => {
 
 const loadDashboard = async () => {
   try {
-    const [summaryRes, leadsRes, appointmentsRes, followupsRes] = await Promise.all([
+    const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes] = await Promise.all([
       fetch('/admin/summary'),
       fetch('/admin/leads'),
       fetch('/admin/appointments'),
-      fetch('/admin/followups')
+      fetch('/admin/followups'),
+      fetch('/admin/runtime')
     ]);
 
-    const [summary, leads, appointments, followups] = await Promise.all([
+    const [summary, leads, appointments, followups, runtime] = await Promise.all([
       summaryRes.json(),
       leadsRes.json(),
       appointmentsRes.json(),
-      followupsRes.json()
+      followupsRes.json(),
+      runtimeRes.json()
     ]);
 
     renderStats(summary);
@@ -174,6 +177,27 @@ const loadDashboard = async () => {
       <div class="break-row">
         <strong>Urgency Mix</strong>
         ${renderTokens(summary.leads.byUrgency, 'No urgency data yet')}
+      </div>
+    `;
+
+    runtimeStatusEl.innerHTML = `
+      <div class="runtime-grid">
+        <div class="runtime-item">
+          <span>Version</span>
+          <strong>${runtime.version}</strong>
+        </div>
+        <div class="runtime-item">
+          <span>Storage Provider</span>
+          <strong>${runtime.storage.provider}</strong>
+        </div>
+        <div class="runtime-item">
+          <span>Storage Mode</span>
+          <strong>${runtime.storage.mode}</strong>
+        </div>
+        <div class="runtime-item">
+          <span>Default Persona</span>
+          <strong>${runtime.defaultPersona}</strong>
+        </div>
       </div>
     `;
   } catch (error) {
