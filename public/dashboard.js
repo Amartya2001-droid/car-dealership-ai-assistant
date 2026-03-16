@@ -4,6 +4,7 @@ const appointmentFeedEl = document.getElementById('appointment-feed');
 const followupFeedEl = document.getElementById('followup-feed');
 const summaryBreakdownEl = document.getElementById('summary-breakdown');
 const runtimeStatusEl = document.getElementById('runtime-status');
+const attentionQueueEl = document.getElementById('attention-queue');
 const leadSearchEl = document.getElementById('lead-search');
 const topicFilterEl = document.getElementById('topic-filter');
 const statusFilterEl = document.getElementById('status-filter');
@@ -107,6 +108,35 @@ const renderLeads = () => {
   );
 };
 
+const renderAttentionQueue = (leads, followups) => {
+  const queuedPhones = new Set(
+    (followups || []).filter((item) => item.status === 'queued').map((item) => item.phone)
+  );
+
+  const priorityLeads = (leads || [])
+    .filter((lead) => lead.urgency === 'high' || lead.callbackWindow || queuedPhones.has(lead.phone))
+    .slice(-5)
+    .reverse();
+
+  renderFeed(
+    attentionQueueEl,
+    priorityLeads,
+    (lead) => {
+      const priorityClass = lead.urgency === 'high' ? 'priority-high' : 'priority-medium';
+      return `
+        <div class="feed-item ${priorityClass}">
+          <strong>${lead.callerName || lead.phone}</strong>
+          <div>${lead.inquiry}</div>
+          <div class="feed-meta">
+            ${lead.urgency} | ${lead.status} | ${lead.callbackWindow ? `Callback ${lead.callbackWindow.label}` : 'No callback window'}
+          </div>
+        </div>
+      `;
+    },
+    'Priority items will appear here'
+  );
+};
+
 const loadDashboard = async () => {
   try {
     const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes] = await Promise.all([
@@ -164,6 +194,8 @@ const loadDashboard = async () => {
       `,
       'Follow-ups will appear here'
     );
+
+    renderAttentionQueue(dashboardState.leads, followups.followups || []);
 
     summaryBreakdownEl.innerHTML = `
       <div class="break-row">

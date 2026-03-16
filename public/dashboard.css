@@ -240,6 +240,16 @@ h1 {
   font-weight: 700;
 }
 
+.priority-high {
+  border-color: rgba(201, 92, 52, 0.3);
+  background: rgba(201, 92, 52, 0.08);
+}
+
+.priority-medium {
+  border-color: rgba(181, 138, 47, 0.3);
+  background: rgba(181, 138, 47, 0.08);
+}
+
 .runtime-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
