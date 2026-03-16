@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-16 (Dashboard Enhancements)
+- Added dashboard filters for lead search, topic, and status.
+- Added runtime status visibility to the dashboard using `GET /admin/runtime`.
+- Added an attention queue for urgent leads and callback-heavy follow-up items.
+
 ## 2026-03-15 (Persistence Prep)
 - Added Supabase environment placeholders and runtime storage-provider config.
 - Added a persistence status helper and `GET /admin/runtime` endpoint.

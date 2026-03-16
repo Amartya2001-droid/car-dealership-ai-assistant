@@ -137,6 +137,9 @@ The monitoring UI at `/dashboard` shows:
 - recent leads with intent and callback preference
 - recent appointments and follow-up queue
 - topic, status, and urgency breakdowns
+- lead search plus topic and status filters
+- runtime storage/default-persona visibility
+- an attention queue for urgent or callback-heavy leads
 
 ## Runtime Status
 Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.
