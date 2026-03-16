@@ -30,6 +30,33 @@
 
       <section class="stats" id="stats"></section>
 
+      <section class="toolbar">
+        <div class="toolbar-group">
+          <label class="field">
+            <span>Search Leads</span>
+            <input id="lead-search" type="search" placeholder="Name, phone, or inquiry" />
+          </label>
+          <label class="field">
+            <span>Topic</span>
+            <select id="topic-filter">
+              <option value="all">All topics</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select id="status-filter">
+              <option value="all">All statuses</option>
+            </select>
+          </label>
+        </div>
+        <div class="toolbar-group toolbar-meta">
+          <div class="meta-card">
+            <span class="meta-label">Last Updated</span>
+            <strong id="last-updated">Waiting for data</strong>
+          </div>
+        </div>
+      </section>
+
       <section class="grid">
         <article class="panel">
           <div class="panel-header">
