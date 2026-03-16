@@ -3,6 +3,14 @@ const leadFeedEl = document.getElementById('lead-feed');
 const appointmentFeedEl = document.getElementById('appointment-feed');
 const followupFeedEl = document.getElementById('followup-feed');
 const summaryBreakdownEl = document.getElementById('summary-breakdown');
+const leadSearchEl = document.getElementById('lead-search');
+const topicFilterEl = document.getElementById('topic-filter');
+const statusFilterEl = document.getElementById('status-filter');
+const lastUpdatedEl = document.getElementById('last-updated');
+
+let dashboardState = {
+  leads: []
+};
 
 const setCount = (id, text) => {
   const element = document.getElementById(id);
@@ -52,6 +60,52 @@ const renderTokens = (source, emptyLabel) => {
     .join('')}</div>`;
 };
 
+const setSelectOptions = (element, values, label) => {
+  const currentValue = element.value || 'all';
+  element.innerHTML = [`<option value="all">All ${label}</option>`]
+    .concat(values.map((value) => `<option value="${value}">${value}</option>`))
+    .join('');
+  element.value = values.includes(currentValue) ? currentValue : 'all';
+};
+
+const getFilteredLeads = () => {
+  const query = leadSearchEl.value.trim().toLowerCase();
+  const topic = topicFilterEl.value;
+  const status = statusFilterEl.value;
+
+  return dashboardState.leads.filter((lead) => {
+    const matchesQuery =
+      !query ||
+      [lead.callerName, lead.phone, lead.inquiry]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    const matchesTopic = topic === 'all' || lead.topic === topic;
+    const matchesStatus = status === 'all' || lead.status === status;
+
+    return matchesQuery && matchesTopic && matchesStatus;
+  });
+};
+
+const renderLeads = () => {
+  const recentLeads = getFilteredLeads().slice(-5).reverse();
+
+  setCount('lead-count', `${recentLeads.length} showing`);
+  renderFeed(
+    leadFeedEl,
+    recentLeads,
+    (lead) => `
+      <div class="feed-item">
+        <strong>${lead.callerName || lead.phone}</strong>
+        <div>${lead.inquiry}</div>
+        <div class="feed-meta">
+          ${lead.topic} | ${lead.urgency} | ${lead.callbackWindow ? `Callback: ${lead.callbackWindow.label}` : 'No callback preference'}
+        </div>
+      </div>
+    `,
+    'Lead feed ready'
+  );
+};
+
 const loadDashboard = async () => {
   try {
     const [summaryRes, leadsRes, appointmentsRes, followupsRes] = await Promise.all([
@@ -70,28 +124,17 @@ const loadDashboard = async () => {
 
     renderStats(summary);
 
-    const recentLeads = (leads.leads || []).slice(-5).reverse();
+    dashboardState.leads = leads.leads || [];
+    setSelectOptions(topicFilterEl, [...new Set(dashboardState.leads.map((lead) => lead.topic).filter(Boolean))], 'topics');
+    setSelectOptions(statusFilterEl, [...new Set(dashboardState.leads.map((lead) => lead.status).filter(Boolean))], 'statuses');
     const recentAppointments = (appointments.appointments || []).slice(-5).reverse();
     const recentFollowups = (followups.followups || []).slice(-5).reverse();
 
-    setCount('lead-count', `${recentLeads.length} recent`);
     setCount('appointment-count', `${recentAppointments.length} recent`);
     setCount('followup-count', `${summary.followups.queued} queued`);
+    lastUpdatedEl.textContent = formatDate(Date.now());
 
-    renderFeed(
-      leadFeedEl,
-      recentLeads,
-      (lead) => `
-        <div class="feed-item">
-          <strong>${lead.callerName || lead.phone}</strong>
-          <div>${lead.inquiry}</div>
-          <div class="feed-meta">
-            ${lead.topic} | ${lead.urgency} | ${lead.callbackWindow ? `Callback: ${lead.callbackWindow.label}` : 'No callback preference'}
-          </div>
-        </div>
-      `,
-      'Lead feed ready'
-    );
+    renderLeads();
 
     renderFeed(
       appointmentFeedEl,
@@ -141,3 +184,8 @@ const loadDashboard = async () => {
 
 loadDashboard();
 setInterval(loadDashboard, 30000);
+
+[leadSearchEl, topicFilterEl, statusFilterEl].forEach((element) => {
+  element.addEventListener('input', renderLeads);
+  element.addEventListener('change', renderLeads);
+});
