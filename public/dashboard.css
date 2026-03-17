@@ -239,6 +239,22 @@ h1 {
   text-decoration: none;
 }
 
+.mini-token-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mini-token {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(40, 89, 67, 0.1);
+  color: var(--forest);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .breakdown {
   display: grid;
   gap: 12px;

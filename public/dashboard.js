@@ -103,7 +103,11 @@ const renderLeads = () => {
         <strong>${lead.callerName || lead.phone}</strong>
         <div>${lead.inquiry}</div>
         <div class="feed-meta">
-          ${lead.topic} | ${lead.urgency} | ${lead.callbackWindow ? `Callback: ${lead.callbackWindow.label}` : 'No callback preference'}
+          ${lead.topic} | ${lead.urgency}
+        </div>
+        <div class="mini-token-row">
+          ${lead.callbackWindow ? `<span class="mini-token">Callback ${lead.callbackWindow.label}</span>` : '<span class="mini-token">No callback preference</span>'}
+          <span class="mini-token">${lead.status}</span>
         </div>
         ${
           lead.showroomAsset
