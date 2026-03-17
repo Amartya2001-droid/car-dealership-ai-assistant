@@ -9,9 +9,11 @@ const leadSearchEl = document.getElementById('lead-search');
 const topicFilterEl = document.getElementById('topic-filter');
 const statusFilterEl = document.getElementById('status-filter');
 const lastUpdatedEl = document.getElementById('last-updated');
+const refreshButtonEl = document.getElementById('refresh-button');
 
 let dashboardState = {
-  leads: []
+  leads: [],
+  loading: false
 };
 
 const setCount = (id, text) => {
@@ -139,6 +141,9 @@ const renderAttentionQueue = (leads, followups) => {
 
 const loadDashboard = async () => {
   try {
+    dashboardState.loading = true;
+    refreshButtonEl.textContent = 'Refreshing...';
+    refreshButtonEl.disabled = true;
     const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes] = await Promise.all([
       fetch('/admin/summary'),
       fetch('/admin/leads'),
@@ -235,6 +240,10 @@ const loadDashboard = async () => {
   } catch (error) {
     statsEl.innerHTML = `<article class="stat-card"><span class="stat-label">Dashboard Error</span><strong class="stat-value">Offline</strong></article>`;
     leadFeedEl.innerHTML = `<div class="feed-item"><strong>Unable to load dashboard data</strong><div class="feed-meta">${error.message}</div></div>`;
+  } finally {
+    dashboardState.loading = false;
+    refreshButtonEl.textContent = 'Refresh now';
+    refreshButtonEl.disabled = false;
   }
 };
 
@@ -245,3 +254,5 @@ setInterval(loadDashboard, 30000);
   element.addEventListener('input', renderLeads);
   element.addEventListener('change', renderLeads);
 });
+
+refreshButtonEl.addEventListener('click', loadDashboard);
