@@ -91,9 +91,10 @@ const getFilteredLeads = () => {
 };
 
 const renderLeads = () => {
-  const recentLeads = getFilteredLeads().slice(-5).reverse();
+  const filteredLeads = getFilteredLeads();
+  const recentLeads = filteredLeads.slice(-5).reverse();
 
-  setCount('lead-count', `${recentLeads.length} showing`);
+  setCount('lead-count', `${filteredLeads.length} of ${dashboardState.leads.length} leads`);
   renderFeed(
     leadFeedEl,
     recentLeads,
