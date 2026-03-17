@@ -190,7 +190,10 @@ const loadDashboard = async () => {
         <div class="feed-item">
           <strong>${appointment.callerName || appointment.phone}</strong>
           <div>${formatDate(appointment.scheduledFor)}</div>
-          <div class="feed-meta">${appointment.status} | ${appointment.provider}</div>
+          <div class="status-row">
+            <span class="status-chip ${appointment.status}">${appointment.status}</span>
+            <span class="status-chip provider">${appointment.provider}</span>
+          </div>
         </div>
       `,
       'Appointments will appear here'

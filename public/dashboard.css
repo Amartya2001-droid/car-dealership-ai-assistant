@@ -267,6 +267,36 @@ h1 {
   font-weight: 700;
 }
 
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.status-chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-chip.confirmed {
+  background: rgba(40, 89, 67, 0.14);
+  color: var(--forest);
+}
+
+.status-chip.scheduled,
+.status-chip.scheduled_fallback {
+  background: rgba(181, 138, 47, 0.14);
+  color: #7f6119;
+}
+
+.status-chip.provider {
+  background: rgba(29, 42, 35, 0.08);
+  color: var(--ink);
+}
+
 .priority-high {
   border-color: rgba(201, 92, 52, 0.3);
   background: rgba(201, 92, 52, 0.08);
