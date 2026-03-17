@@ -105,6 +105,14 @@ const renderLeads = () => {
         <div class="feed-meta">
           ${lead.topic} | ${lead.urgency} | ${lead.callbackWindow ? `Callback: ${lead.callbackWindow.label}` : 'No callback preference'}
         </div>
+        ${
+          lead.showroomAsset
+            ? `<div class="feed-links">
+                <a href="${lead.showroomAsset.brochureUrl}" target="_blank" rel="noreferrer">Brochure</a>
+                <a href="${lead.showroomAsset.videoUrl}" target="_blank" rel="noreferrer">Walkaround</a>
+              </div>`
+            : ''
+        }
       </div>
     `,
     'Lead feed ready'
