@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-17 (Dashboard Ops Polish)
+- Added a manual dashboard refresh button and filtered lead totals.
+- Added showroom links in lead cards, appointment status badges, and callback tokens.
+- Added a quick links panel and runtime-aware source label to the dashboard.
+
 ## 2026-03-16 (Dashboard Enhancements)
 - Added dashboard filters for lead search, topic, and status.
 - Added runtime status visibility to the dashboard using `GET /admin/runtime`.

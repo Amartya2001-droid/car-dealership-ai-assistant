@@ -140,6 +140,9 @@ The monitoring UI at `/dashboard` shows:
 - lead search plus topic and status filters
 - runtime storage/default-persona visibility
 - an attention queue for urgent or callback-heavy leads
+- manual refresh controls and a last-updated stamp
+- direct quick links to the main admin JSON endpoints
+- showroom brochure and walkaround links inside lead cards
 
 ## Runtime Status
 Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.
