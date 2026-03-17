@@ -343,6 +343,23 @@ h1 {
   margin-bottom: 6px;
 }
 
+.link-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jump-link {
+  display: block;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(40, 89, 67, 0.08);
+  border: 1px solid rgba(40, 89, 67, 0.14);
+  color: var(--forest);
+  font-weight: 800;
+  text-decoration: none;
+}
+
 @media (max-width: 920px) {
   .hero,
   .grid {
@@ -360,6 +377,10 @@ h1 {
   }
 
   .runtime-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .link-grid {
     grid-template-columns: 1fr;
   }
 }
