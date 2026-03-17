@@ -10,6 +10,7 @@ const topicFilterEl = document.getElementById('topic-filter');
 const statusFilterEl = document.getElementById('status-filter');
 const lastUpdatedEl = document.getElementById('last-updated');
 const refreshButtonEl = document.getElementById('refresh-button');
+const sourceLabelEl = document.getElementById('source-label');
 
 let dashboardState = {
   leads: [],
@@ -253,6 +254,7 @@ const loadDashboard = async () => {
         </div>
       </div>
     `;
+    sourceLabelEl.textContent = `${runtime.storage.provider} | ${runtime.storage.mode}`;
   } catch (error) {
     statsEl.innerHTML = `<article class="stat-card"><span class="stat-label">Dashboard Error</span><strong class="stat-value">Offline</strong></article>`;
     leadFeedEl.innerHTML = `<div class="feed-item"><strong>Unable to load dashboard data</strong><div class="feed-meta">${error.message}</div></div>`;
