@@ -44,7 +44,7 @@ const ErrorState = ({ error, onRetry }) => {
         </Button>
 
         <div className="text-center text-sm text-stone-500">
-          <p>Backend URL: <code className="bg-stone-200 px-2 py-1 rounded text-xs">{process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000'}</code></p>
+          <p>Backend URL: <code className="bg-stone-200 px-2 py-1 rounded text-xs">{process.env.REACT_APP_BACKEND_URL || 'same-origin via dev proxy'}</code></p>
         </div>
       </div>
     </div>

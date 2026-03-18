@@ -1,11 +1,13 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
-  // Proxy Express backend endpoints to localhost:3001
+  const target = process.env.REACT_APP_BACKEND_PROXY_TARGET || 'http://localhost:3000';
+
+  // Proxy backend API endpoints during local dashboard development.
   app.use(
     ['/health', '/admin', '/showroom', '/simulate', '/webhooks', '/config'],
     createProxyMiddleware({
-      target: 'http://localhost:3001',
+      target,
       changeOrigin: true,
       logLevel: 'debug',
     })

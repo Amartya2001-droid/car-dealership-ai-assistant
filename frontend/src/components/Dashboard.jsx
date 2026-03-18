@@ -24,8 +24,10 @@ import QuickLinksPanel from './QuickLinksPanel';
 import LoadingSkeleton from './LoadingSkeleton';
 import ErrorState from './ErrorState';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
 const REFRESH_INTERVAL = 30000; // 30 seconds
+
+const apiGet = (path) => axios.get(`${API_BASE_URL}${path}`);
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -53,12 +55,12 @@ const Dashboard = () => {
     
     try {
       const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes] = await Promise.all([
-        axios.get(`${BACKEND_URL}/admin/summary`),
-        axios.get(`${BACKEND_URL}/admin/leads`),
-        axios.get(`${BACKEND_URL}/admin/appointments`),
-        axios.get(`${BACKEND_URL}/admin/followups`),
-        axios.get(`${BACKEND_URL}/admin/runtime`),
-        axios.get(`${BACKEND_URL}/health`)
+        apiGet('/admin/summary'),
+        apiGet('/admin/leads'),
+        apiGet('/admin/appointments'),
+        apiGet('/admin/followups'),
+        apiGet('/admin/runtime'),
+        apiGet('/health')
       ]);
 
       setSummary(summaryRes.data);

@@ -42,37 +42,45 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
      }'
    ```
 
-5. Open the monitoring dashboard:
+5. Open the built-in monitoring dashboard:
    ```bash
    open http://localhost:3000/dashboard
    ```
 
-5. Optional one-command setup:
+6. Optional React dashboard workspace:
+   ```bash
+   npm run dashboard:install
+   cp frontend/.env.example frontend/.env
+   npm run dashboard:start
+   ```
+   This launches the imported React dashboard on `http://localhost:3001` and proxies API requests to the Express backend on `http://localhost:3000`.
+
+7. Optional one-command setup:
    ```bash
    bash scripts/setup.sh
    ```
 
-6. Optional demo seed data:
+8. Optional demo seed data:
    ```bash
    npm run seed:demo
    ```
 
-7. Optional local smoke check:
+9. Optional local smoke check:
    ```bash
    npm run smoke
    ```
 
-8. Optional local summary snapshot:
+10. Optional local summary snapshot:
    ```bash
    npm run summary
    ```
 
-9. Optional lead export:
+11. Optional lead export:
    ```bash
    npm run export:leads
    ```
 
-10. Optional environment validation:
+12. Optional environment validation:
    ```bash
    npm run check:env
    ```
@@ -143,6 +151,10 @@ The monitoring UI at `/dashboard` shows:
 - manual refresh controls and a last-updated stamp
 - direct quick links to the main admin JSON endpoints
 - showroom brochure and walkaround links inside lead cards
+
+The imported React dashboard workspace lives in [`frontend`](./frontend) and is intended for a richer standalone staff dashboard during local development or future deployment.
+
+For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 
 ## Runtime Status
 Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.

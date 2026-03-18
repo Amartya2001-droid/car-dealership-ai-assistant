@@ -3,43 +3,44 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Database, Activity, FileText, Users, Calendar, Clock } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const QuickLinksPanel = () => {
   const links = [
     {
       label: 'Health Check',
-      url: `${BACKEND_URL}/health`,
+      url: buildApiUrl('/health'),
       icon: <Activity className="h-4 w-4" />,
       color: 'text-green-600'
     },
     {
       label: 'Runtime Status',
-      url: `${BACKEND_URL}/admin/runtime`,
+      url: buildApiUrl('/admin/runtime'),
       icon: <Database className="h-4 w-4" />,
       color: 'text-blue-600'
     },
     {
       label: 'Summary JSON',
-      url: `${BACKEND_URL}/admin/summary`,
+      url: buildApiUrl('/admin/summary'),
       icon: <FileText className="h-4 w-4" />,
       color: 'text-purple-600'
     },
     {
       label: 'All Leads',
-      url: `${BACKEND_URL}/admin/leads`,
+      url: buildApiUrl('/admin/leads'),
       icon: <Users className="h-4 w-4" />,
       color: 'text-amber-600'
     },
     {
       label: 'All Appointments',
-      url: `${BACKEND_URL}/admin/appointments`,
+      url: buildApiUrl('/admin/appointments'),
       icon: <Calendar className="h-4 w-4" />,
       color: 'text-green-600'
     },
     {
       label: 'All Follow-ups',
-      url: `${BACKEND_URL}/admin/followups`,
+      url: buildApiUrl('/admin/followups'),
       icon: <Clock className="h-4 w-4" />,
       color: 'text-orange-600'
     }
