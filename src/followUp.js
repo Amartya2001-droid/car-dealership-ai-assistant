@@ -1,4 +1,3 @@
-const cron = require('node-cron');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -131,6 +130,12 @@ const runMorningDispatch = async () => {
 
 const startFollowUpScheduler = () => {
   const expression = `${config.followUpMinute} ${config.followUpHour} * * 1-5`;
+  if (config.nodeEnv !== 'production') {
+    return `${expression} (disabled in ${config.nodeEnv})`;
+  }
+
+  const cron = require('node-cron');
+
   cron.schedule(
     expression,
     async () => {
