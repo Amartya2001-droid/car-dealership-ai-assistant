@@ -49,11 +49,10 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 
 6. Optional React dashboard preview:
    ```bash
-   npm run dashboard:build
-   npm run dev
+   npm run dashboard:refresh
    open http://localhost:3000/ops-dashboard/
    ```
-   This serves the built React dashboard through the Express app on the same origin as the API.
+   This rebuilds the dashboard bundle and verifies the backend-served preview route on the same origin as the API.
 
 7. Optional React dashboard workspace:
    ```bash
