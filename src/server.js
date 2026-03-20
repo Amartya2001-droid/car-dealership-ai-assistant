@@ -13,6 +13,8 @@ const { scheduleTestDrive } = require('./testDriveScheduler');
 const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
 const { getPersistenceStatus } = require('./persistence');
 
+const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
+
 const pushLifecycleEvent = (lead, status, note) => {
   const lifecycle = Array.isArray(lead.lifecycle) ? lead.lifecycle : [];
   return [...lifecycle, { status, at: new Date().toISOString(), note }];
@@ -25,6 +27,7 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use('/dashboard-assets', express.static(path.join(__dirname, '..', 'public')));
+  app.use('/ops-dashboard', express.static(reactDashboardBuildDir));
 
   app.get('/health', (_req, res) => {
     res.json({
@@ -50,6 +53,10 @@ const createApp = () => {
 
   app.get('/dashboard', (_req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
+  });
+
+  app.get('/ops-dashboard', (_req, res) => {
+    res.sendFile(path.join(reactDashboardBuildDir, 'index.html'));
   });
 
   app.get('/showroom/:slug/brochure', (req, res) => {
