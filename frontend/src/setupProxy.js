@@ -5,8 +5,7 @@ module.exports = function(app) {
 
   // Proxy backend API endpoints during local dashboard development.
   app.use(
-    ['/health', '/admin', '/showroom', '/simulate', '/webhooks', '/config'],
-    createProxyMiddleware({
+    createProxyMiddleware(['/health', '/admin', '/showroom', '/simulate', '/webhooks', '/config'], {
       target,
       changeOrigin: true,
       logLevel: 'debug',
