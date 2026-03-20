@@ -47,40 +47,48 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    open http://localhost:3000/dashboard
    ```
 
-6. Optional React dashboard workspace:
+6. Optional React dashboard preview:
+   ```bash
+   npm run dashboard:build
+   npm run dev
+   open http://localhost:3000/ops-dashboard/
+   ```
+   This serves the built React dashboard through the Express app on the same origin as the API.
+
+7. Optional React dashboard workspace:
    ```bash
    npm run dashboard:install
    cp frontend/.env.example frontend/.env
    npm run dashboard:start
    ```
-   This launches the imported React dashboard on `http://localhost:3001` and proxies API requests to the Express backend on `http://localhost:3000`.
+   This launches the separate React dev server on `http://localhost:3001` for frontend-only iteration.
 
-7. Optional one-command setup:
+8. Optional one-command setup:
    ```bash
    bash scripts/setup.sh
    ```
 
-8. Optional demo seed data:
+9. Optional demo seed data:
    ```bash
    npm run seed:demo
    ```
 
-9. Optional local smoke check:
+10. Optional local smoke check:
    ```bash
    npm run smoke
    ```
 
-10. Optional local summary snapshot:
+11. Optional local summary snapshot:
    ```bash
    npm run summary
    ```
 
-11. Optional lead export:
+12. Optional lead export:
    ```bash
    npm run export:leads
    ```
 
-12. Optional environment validation:
+13. Optional environment validation:
    ```bash
    npm run check:env
    ```
@@ -152,7 +160,7 @@ The monitoring UI at `/dashboard` shows:
 - direct quick links to the main admin JSON endpoints
 - showroom brochure and walkaround links inside lead cards
 
-The imported React dashboard workspace lives in [`frontend`](./frontend) and is intended for a richer standalone staff dashboard during local development or future deployment.
+The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 

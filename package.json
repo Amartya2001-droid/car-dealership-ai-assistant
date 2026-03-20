@@ -18,7 +18,8 @@
     "smoke": "bash scripts/smoke-check.sh",
     "summary": "node scripts/print-summary.js",
     "export:leads": "node scripts/export-leads.js",
-    "check:env": "node scripts/check-env.js"
+    "check:env": "node scripts/check-env.js",
+    "dashboard:check": "bash scripts/check-dashboard-route.sh"
   },
   "keywords": [],
   "author": "",
