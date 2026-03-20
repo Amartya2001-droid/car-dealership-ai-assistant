@@ -25,12 +25,11 @@ By default the dashboard dev server runs on `http://localhost:3001`.
 The production-style bundle is built to live at `/ops-dashboard` and can be served directly by the Express backend:
 
 ```bash
-npm run dashboard:build
-npm run dev
+npm run dashboard:refresh
 open http://localhost:3000/ops-dashboard/
 ```
 
-This is the most reliable local preview path in this repo.
+This is the most reliable local preview path in this repo and avoids the separate dev-server branding shell.
 
 ## Environment variables
 
