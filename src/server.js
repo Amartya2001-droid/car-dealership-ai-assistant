@@ -12,6 +12,7 @@ const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
 const { scheduleTestDrive } = require('./testDriveScheduler');
 const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
 const { getPersistenceStatus } = require('./persistence');
+const { getDashboardLinks, getDashboardStatus } = require('./dashboardMeta');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -49,6 +50,16 @@ const createApp = () => {
       timezone: config.dealershipTimezone,
       defaultPersona: config.defaultPersona
     });
+  });
+
+  app.get('/admin/dashboard-links', (_req, res) => {
+    res.json({
+      links: getDashboardLinks(config.baseUrl)
+    });
+  });
+
+  app.get('/admin/dashboard-status', (_req, res) => {
+    res.json(getDashboardStatus(config.baseUrl));
   });
 
   app.get('/dashboard', (_req, res) => {
