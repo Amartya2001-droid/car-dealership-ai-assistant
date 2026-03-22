@@ -92,6 +92,11 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    npm run check:env
    ```
 
+14. Optional dashboard links snapshot:
+   ```bash
+   npm run dashboard:links
+   ```
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
@@ -160,6 +165,7 @@ The monitoring UI at `/dashboard` shows:
 - showroom brochure and walkaround links inside lead cards
 
 The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
+For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboard-status`, or `npm run dashboard:links`.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 
