@@ -20,7 +20,8 @@
     "export:leads": "node scripts/export-leads.js",
     "check:env": "node scripts/check-env.js",
     "dashboard:check": "bash scripts/check-dashboard-route.sh",
-    "dashboard:refresh": "bash scripts/rebuild-dashboard.sh"
+    "dashboard:refresh": "bash scripts/rebuild-dashboard.sh",
+    "dashboard:links": "node scripts/print-dashboard-links.js"
   },
   "keywords": [],
   "author": "",
