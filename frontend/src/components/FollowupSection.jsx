@@ -29,13 +29,16 @@ const FollowupSection = ({ followups }) => {
           <Clock className="h-5 w-5 text-purple-600" />
           Follow-up Queue
         </CardTitle>
-        <CardDescription>Next-day customer outreach</CardDescription>
+        <CardDescription>
+          {followups.length === 0 ? 'Next-day customer outreach' : `${followups.length} queued or processed follow-up message${followups.length === 1 ? '' : 's'}`}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {followups.length === 0 ? (
           <div className="text-center py-8 text-stone-500">
             <Clock className="h-10 w-10 mx-auto mb-2 text-stone-300" />
-            <p className="text-sm">No follow-ups queued</p>
+            <p className="text-sm font-medium">No follow-ups queued</p>
+            <p className="text-xs text-stone-400 mt-1">Opted-in callers will show up here for next-business-day outreach.</p>
           </div>
         ) : (
           <div className="space-y-3">
