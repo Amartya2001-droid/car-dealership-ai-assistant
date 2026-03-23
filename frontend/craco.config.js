@@ -37,8 +37,8 @@ let webpackConfig = {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
-
-      // Add ignored patterns to reduce watched directories
+      if (isDevServer) {
+        // Limit watched directories during local frontend iteration only.
         webpackConfig.watchOptions = {
           ...webpackConfig.watchOptions,
           ignored: [
@@ -48,8 +48,9 @@ let webpackConfig = {
             '**/dist/**',
             '**/coverage/**',
             '**/public/**',
-        ],
-      };
+          ],
+        };
+      }
 
       // Add health check plugin to webpack if enabled
       if (config.enableHealthCheck && healthPluginInstance) {
