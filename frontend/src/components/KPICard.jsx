@@ -33,11 +33,14 @@ const colorClasses = {
   }
 };
 
-const KPICard = ({ title, value, icon, trend, color = 'blue', subtitle }) => {
+const KPICard = ({ title, value, icon, trend, color = 'blue', subtitle, ...props }) => {
   const colors = colorClasses[color] || colorClasses.blue;
   
   return (
-    <Card className={`border-2 ${colors.border} shadow-sm hover:shadow-md transition-all duration-200 bg-white`}>
+    <Card
+      className={`border-2 ${colors.border} shadow-sm hover:shadow-md transition-all duration-200 bg-white`}
+      {...props}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-stone-600">{title}</CardTitle>
