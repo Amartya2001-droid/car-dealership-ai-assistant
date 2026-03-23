@@ -246,6 +246,15 @@ const Dashboard = () => {
           </Alert>
         )}
 
+        {error && summary && (
+          <Alert className="border-red-300 bg-red-50" data-testid="dashboard-warning">
+            <Bell className="h-5 w-5 text-red-600" />
+            <AlertDescription className="text-red-900">
+              Some dashboard data may be stale. Latest refresh failed with: {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lead Monitoring - Takes 2 columns */}
