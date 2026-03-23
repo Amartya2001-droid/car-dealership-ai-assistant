@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { getDashboardLinks, getDashboardStatus } = require('../src/dashboardMeta');
+const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('../src/dashboardMeta');
 
 test('getDashboardLinks returns the expected local routes', () => {
   const links = getDashboardLinks('http://localhost:3000/');
@@ -17,4 +17,16 @@ test('getDashboardStatus reports a base URL and build flag', () => {
   assert.equal(status.baseUrl, 'http://localhost:3000');
   assert.equal(typeof status.buildAvailable, 'boolean');
   assert.equal(typeof status.frontendBuildDir, 'string');
+});
+
+test('getDashboardReadiness returns links, status, and a recommended route', () => {
+  const readiness = getDashboardReadiness('http://localhost:3000/');
+
+  assert.equal(typeof readiness.ready, 'boolean');
+  assert.equal(readiness.links.builtInDashboard, 'http://localhost:3000/dashboard');
+  assert.equal(readiness.links.opsDashboard, 'http://localhost:3000/ops-dashboard/');
+  assert.equal(
+    readiness.recommendedRoute,
+    readiness.status.buildAvailable ? readiness.links.opsDashboard : readiness.links.builtInDashboard
+  );
 });
