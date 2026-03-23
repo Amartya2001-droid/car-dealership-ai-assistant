@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock } from 'lucide-react';
 
 const AppointmentsSection = ({ appointments }) => {
   const statusConfig = {
@@ -29,13 +29,16 @@ const AppointmentsSection = ({ appointments }) => {
           <Calendar className="h-5 w-5 text-green-600" />
           Appointments
         </CardTitle>
-        <CardDescription>Test drive scheduling</CardDescription>
+        <CardDescription>
+          {appointments.length === 0 ? 'Test drive scheduling' : `${appointments.length} scheduled or pending test drive${appointments.length === 1 ? '' : 's'}`}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {appointments.length === 0 ? (
           <div className="text-center py-8 text-stone-500">
             <Calendar className="h-10 w-10 mx-auto mb-2 text-stone-300" />
-            <p className="text-sm">No appointments scheduled</p>
+            <p className="text-sm font-medium">No appointments scheduled</p>
+            <p className="text-xs text-stone-400 mt-1">Test drive requests will appear here after callers book a slot.</p>
           </div>
         ) : (
           <div className="space-y-3">
