@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [followups, setFollowups] = useState([]);
   const [runtime, setRuntime] = useState(null);
   const [health, setHealth] = useState(null);
+  const [dashboardStatus, setDashboardStatus] = useState(null);
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,13 +55,14 @@ const Dashboard = () => {
     }
     
     try {
-      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes] = await Promise.all([
+      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes, dashboardStatusRes] = await Promise.all([
         apiGet('/admin/summary'),
         apiGet('/admin/leads'),
         apiGet('/admin/appointments'),
         apiGet('/admin/followups'),
         apiGet('/admin/runtime'),
-        apiGet('/health')
+        apiGet('/health'),
+        apiGet('/admin/dashboard-status')
       ]);
 
       setSummary(summaryRes.data);
@@ -69,6 +71,7 @@ const Dashboard = () => {
       setFollowups(followupsRes.data.followups || []);
       setRuntime(runtimeRes.data);
       setHealth(healthRes.data);
+      setDashboardStatus(dashboardStatusRes.data);
       setLastUpdated(new Date());
       setError(null);
       
@@ -182,6 +185,16 @@ const Dashboard = () => {
               <Badge variant="outline" className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
                 v{runtime.version || '1.0.0'}
               </Badge>
+              {health?.status && (
+                <Badge variant="outline" className="bg-emerald-500/10 border-emerald-400/30 text-emerald-100 backdrop-blur-sm">
+                  API {health.status}
+                </Badge>
+              )}
+              {dashboardStatus && (
+                <Badge variant="outline" className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
+                  {dashboardStatus.buildAvailable ? 'Build ready' : 'Build missing'}
+                </Badge>
+              )}
             </div>
           )}
         </div>
