@@ -21,7 +21,8 @@
     "check:env": "node scripts/check-env.js",
     "dashboard:check": "bash scripts/check-dashboard-route.sh",
     "dashboard:refresh": "bash scripts/rebuild-dashboard.sh",
-    "dashboard:links": "node scripts/print-dashboard-links.js"
+    "dashboard:links": "node scripts/print-dashboard-links.js",
+    "dashboard:status": "node scripts/print-dashboard-readiness.js"
   },
   "keywords": [],
   "author": "",
