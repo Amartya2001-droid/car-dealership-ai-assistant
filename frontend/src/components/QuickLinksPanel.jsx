@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Database, Activity, FileText, Users, Calendar, Clock } from 'lucide-react';
+import { ExternalLink, Database, Activity, FileText, Users, Calendar, Clock, Link as LinkIcon, LayoutDashboard } from 'lucide-react';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
 const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -25,6 +25,18 @@ const QuickLinksPanel = () => {
       url: buildApiUrl('/admin/summary'),
       icon: <FileText className="h-4 w-4" />,
       color: 'text-purple-600'
+    },
+    {
+      label: 'Dashboard Links',
+      url: buildApiUrl('/admin/dashboard-links'),
+      icon: <LinkIcon className="h-4 w-4" />,
+      color: 'text-sky-600'
+    },
+    {
+      label: 'Dashboard Status',
+      url: buildApiUrl('/admin/dashboard-status'),
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      color: 'text-stone-600'
     },
     {
       label: 'All Leads',
