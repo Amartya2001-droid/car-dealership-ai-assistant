@@ -42,6 +42,8 @@ const LeadMonitoring = ({
   statusFilter,
   setStatusFilter
 }) => {
+  const hasActiveFilters = Boolean(searchQuery) || topicFilter !== 'all' || statusFilter !== 'all';
+
   return (
     <Card className="shadow-lg border-stone-200" data-testid="lead-monitoring-section">
       <CardHeader>
@@ -98,8 +100,10 @@ const LeadMonitoring = ({
           {leads.length === 0 ? (
             <div className="text-center py-12 text-stone-500">
               <Phone className="h-12 w-12 mx-auto mb-3 text-stone-300" />
-              <p className="font-medium">No leads found</p>
-              <p className="text-sm">Leads will appear here as calls come in</p>
+              <p className="font-medium">{hasActiveFilters ? 'No leads match the current filters' : 'No leads found'}</p>
+              <p className="text-sm">
+                {hasActiveFilters ? 'Try clearing a search or filter to see more results' : 'Leads will appear here as calls come in'}
+              </p>
             </div>
           ) : (
             leads.map((lead, index) => (
