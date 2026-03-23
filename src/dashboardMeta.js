@@ -26,8 +26,21 @@ const getDashboardStatus = (baseUrl) => ({
     : null
 });
 
+const getDashboardReadiness = (baseUrl) => {
+  const links = getDashboardLinks(baseUrl);
+  const status = getDashboardStatus(baseUrl);
+
+  return {
+    ready: status.buildAvailable,
+    recommendedRoute: status.buildAvailable ? links.opsDashboard : links.builtInDashboard,
+    links,
+    status
+  };
+};
+
 module.exports = {
   getDashboardLinks,
   getDashboardStatus,
+  getDashboardReadiness,
   frontendBuildDir
 };

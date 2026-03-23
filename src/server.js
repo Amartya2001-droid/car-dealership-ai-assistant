@@ -12,7 +12,7 @@ const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
 const { scheduleTestDrive } = require('./testDriveScheduler');
 const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
 const { getPersistenceStatus } = require('./persistence');
-const { getDashboardLinks, getDashboardStatus } = require('./dashboardMeta');
+const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('./dashboardMeta');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -60,6 +60,10 @@ const createApp = () => {
 
   app.get('/admin/dashboard-status', (_req, res) => {
     res.json(getDashboardStatus(config.baseUrl));
+  });
+
+  app.get('/admin/dashboard-readiness', (_req, res) => {
+    res.json(getDashboardReadiness(config.baseUrl));
   });
 
   app.get('/dashboard', (_req, res) => {
