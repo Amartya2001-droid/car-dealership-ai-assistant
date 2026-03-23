@@ -18,3 +18,4 @@
 - Check `GET /admin/dashboard-status` to confirm the frontend build is present.
 - Check `GET /admin/dashboard-links` to confirm the expected preview URLs.
 - Run `npm run dashboard:refresh` to rebuild the bundle and verify the backend-served route.
+- If the React bundle build hangs, `npm run dashboard:refresh` now writes a fallback `frontend/build/index.html` that redirects `/ops-dashboard/` to the built-in `/dashboard` route.

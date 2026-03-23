@@ -53,6 +53,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    open http://localhost:3000/ops-dashboard/
    ```
    This rebuilds the dashboard bundle and verifies the backend-served preview route on the same origin as the API.
+   If the React production build stalls, the refresh script now generates a fallback `/ops-dashboard/` shell that redirects to the built-in `/dashboard` route so the preview path stays usable.
 
 7. Optional React dashboard workspace:
    ```bash
