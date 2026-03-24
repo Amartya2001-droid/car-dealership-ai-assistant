@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.css": "/ops-dashboard/static/css/main.8e4a4d3c.css",
+    "main.js": "/ops-dashboard/static/js/main.8d314b7e.js",
+    "index.html": "/ops-dashboard/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.8e4a4d3c.css",
+    "static/js/main.8d314b7e.js"
+  ]
+}
