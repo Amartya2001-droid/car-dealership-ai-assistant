@@ -39,6 +39,7 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
+    <!-- fallback-dashboard-shell -->
     <main class="card">
       <h1>Opening Operations Dashboard</h1>
       <p>The frontend bundle is temporarily falling back to the built-in dashboard route.</p>
