@@ -16,6 +16,7 @@ test('getDashboardStatus reports a base URL and build flag', () => {
 
   assert.equal(status.baseUrl, 'http://localhost:3000');
   assert.equal(typeof status.buildAvailable, 'boolean');
+  assert.equal(typeof status.buildMode, 'string');
   assert.equal(typeof status.frontendBuildDir, 'string');
 });
 

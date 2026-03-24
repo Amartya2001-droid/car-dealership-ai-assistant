@@ -2,8 +2,23 @@ const fs = require('fs');
 const path = require('path');
 
 const frontendBuildDir = path.join(__dirname, '..', 'frontend', 'build');
+const frontendBuildIndex = path.join(frontendBuildDir, 'index.html');
+const frontendBuildManifest = path.join(frontendBuildDir, 'asset-manifest.json');
 
 const normalizeBaseUrl = (baseUrl = 'http://localhost:3000') => String(baseUrl).replace(/\/$/, '');
+
+const getDashboardBuildMode = () => {
+  if (!fs.existsSync(frontendBuildIndex)) {
+    return 'missing';
+  }
+
+  if (fs.existsSync(frontendBuildManifest)) {
+    return 'react_bundle';
+  }
+
+  const html = fs.readFileSync(frontendBuildIndex, 'utf8');
+  return html.includes('fallback-dashboard-shell') ? 'fallback_shell' : 'standalone_index';
+};
 
 const getDashboardLinks = (baseUrl) => {
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
@@ -19,10 +34,11 @@ const getDashboardLinks = (baseUrl) => {
 
 const getDashboardStatus = (baseUrl) => ({
   baseUrl: normalizeBaseUrl(baseUrl),
-  buildAvailable: fs.existsSync(path.join(frontendBuildDir, 'index.html')),
+  buildAvailable: fs.existsSync(frontendBuildIndex),
+  buildMode: getDashboardBuildMode(),
   frontendBuildDir,
-  builtAt: fs.existsSync(path.join(frontendBuildDir, 'index.html'))
-    ? fs.statSync(path.join(frontendBuildDir, 'index.html')).mtime.toISOString()
+  builtAt: fs.existsSync(frontendBuildIndex)
+    ? fs.statSync(frontendBuildIndex).mtime.toISOString()
     : null
 });
 
