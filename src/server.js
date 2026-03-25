@@ -13,6 +13,7 @@ const { scheduleTestDrive } = require('./testDriveScheduler');
 const { validateSimulatedCall, validateCallbackWindow } = require('./validation');
 const { getPersistenceStatus } = require('./persistence');
 const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('./dashboardMeta');
+const { buildDashboardOverview } = require('./dashboardOverview');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -64,6 +65,43 @@ const createApp = () => {
 
   app.get('/admin/dashboard-readiness', (_req, res) => {
     res.json(getDashboardReadiness(config.baseUrl));
+  });
+
+  app.get('/admin/dashboard-overview', (_req, res) => {
+    const leads = readJson(files.leads, []);
+    const appointments = readJson(files.appointments, []);
+    const followups = readJson(files.followups, []);
+
+    res.json(
+      buildDashboardOverview({
+        summary: {
+          leads: summarizeLeads(leads),
+          appointments: {
+            total: appointments.length,
+            confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+            pending: appointments.filter((item) => item.status !== 'confirmed').length
+          },
+          followups: {
+            total: followups.length,
+            queued: followups.filter((item) => item.status === 'queued').length,
+            sent: followups.filter((item) => item.status === 'sent').length
+          }
+        },
+        runtime: {
+          version: pkg.version,
+          storage: getPersistenceStatus(),
+          timezone: config.dealershipTimezone,
+          defaultPersona: config.defaultPersona
+        },
+        health: {
+          status: 'ok',
+          service: 'car-dealership-ai-assistant',
+          version: pkg.version,
+          time: new Date().toISOString()
+        },
+        readiness: getDashboardReadiness(config.baseUrl)
+      })
+    );
   });
 
   app.get('/dashboard', (_req, res) => {
