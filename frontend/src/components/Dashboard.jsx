@@ -42,7 +42,7 @@ const Dashboard = () => {
   const [followups, setFollowups] = useState([]);
   const [runtime, setRuntime] = useState(null);
   const [health, setHealth] = useState(null);
-  const [dashboardStatus, setDashboardStatus] = useState(null);
+  const [dashboardReadiness, setDashboardReadiness] = useState(null);
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,14 +55,14 @@ const Dashboard = () => {
     }
     
     try {
-      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes, dashboardStatusRes] = await Promise.all([
+      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes, dashboardReadinessRes] = await Promise.all([
         apiGet('/admin/summary'),
         apiGet('/admin/leads'),
         apiGet('/admin/appointments'),
         apiGet('/admin/followups'),
         apiGet('/admin/runtime'),
         apiGet('/health'),
-        apiGet('/admin/dashboard-status')
+        apiGet('/admin/dashboard-readiness')
       ]);
 
       setSummary(summaryRes.data);
@@ -71,7 +71,7 @@ const Dashboard = () => {
       setFollowups(followupsRes.data.followups || []);
       setRuntime(runtimeRes.data);
       setHealth(healthRes.data);
-      setDashboardStatus(dashboardStatusRes.data);
+      setDashboardReadiness(dashboardReadinessRes.data);
       setLastUpdated(new Date());
       setError(null);
       
@@ -190,9 +190,18 @@ const Dashboard = () => {
                   API {health.status}
                 </Badge>
               )}
-              {dashboardStatus && (
+              {dashboardReadiness?.status && (
                 <Badge variant="outline" className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
-                  {dashboardStatus.buildAvailable ? 'Build ready' : 'Build missing'}
+                  {dashboardReadiness.status.buildMode === 'react_bundle'
+                    ? 'React bundle ready'
+                    : dashboardReadiness.status.buildMode === 'fallback_shell'
+                      ? 'Fallback shell active'
+                      : 'Build missing'}
+                </Badge>
+              )}
+              {dashboardReadiness?.recommendedRoute && (
+                <Badge variant="outline" className="bg-white/10 border-white/20 text-white backdrop-blur-sm">
+                  Route {dashboardReadiness.recommendedRoute.replace(API_BASE_URL, '')}
                 </Badge>
               )}
             </div>

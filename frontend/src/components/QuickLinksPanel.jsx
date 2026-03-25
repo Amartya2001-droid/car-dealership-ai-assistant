@@ -39,6 +39,18 @@ const QuickLinksPanel = () => {
       color: 'text-stone-600'
     },
     {
+      label: 'Dashboard Readiness',
+      url: buildApiUrl('/admin/dashboard-readiness'),
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      color: 'text-stone-600'
+    },
+    {
+      label: 'Dashboard Overview',
+      url: buildApiUrl('/admin/dashboard-overview'),
+      icon: <FileText className="h-4 w-4" />,
+      color: 'text-slate-600'
+    },
+    {
       label: 'All Leads',
       url: buildApiUrl('/admin/leads'),
       icon: <Users className="h-4 w-4" />,
