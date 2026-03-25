@@ -22,7 +22,8 @@
     "dashboard:check": "bash scripts/check-dashboard-route.sh",
     "dashboard:refresh": "bash scripts/rebuild-dashboard.sh",
     "dashboard:links": "node scripts/print-dashboard-links.js",
-    "dashboard:status": "node scripts/print-dashboard-readiness.js"
+    "dashboard:status": "node scripts/print-dashboard-readiness.js",
+    "dashboard:overview": "node scripts/print-dashboard-overview.js"
   },
   "keywords": [],
   "author": "",
