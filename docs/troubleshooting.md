@@ -15,6 +15,7 @@
 
 ## Dashboard Route Looks Broken
 - Check `GET /admin/dashboard-readiness` or run `npm run dashboard:status` to see the recommended local dashboard route.
+- Check `GET /admin/dashboard-overview` or run `npm run dashboard:overview` for one combined snapshot of summary, runtime, health, and readiness.
 - Check `GET /admin/dashboard-status` to confirm the frontend build is present and to see whether `buildMode` is `react_bundle`, `fallback_shell`, or `missing`.
 - Check `GET /admin/dashboard-links` to confirm the expected preview URLs.
 - Run `npm run dashboard:refresh` to rebuild the bundle and verify the backend-served route.
