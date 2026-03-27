@@ -9,6 +9,18 @@ const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
 const QuickLinksPanel = () => {
   const links = [
     {
+      label: 'Built-in Dashboard',
+      url: buildApiUrl('/dashboard'),
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      color: 'text-stone-700'
+    },
+    {
+      label: 'Ops Dashboard',
+      url: buildApiUrl('/ops-dashboard/'),
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      color: 'text-amber-700'
+    },
+    {
       label: 'Health Check',
       url: buildApiUrl('/health'),
       icon: <Activity className="h-4 w-4" />,
