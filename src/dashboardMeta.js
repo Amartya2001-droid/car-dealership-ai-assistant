@@ -28,7 +28,9 @@ const getDashboardLinks = (baseUrl) => {
     opsDashboard: `${normalizedBaseUrl}/ops-dashboard/`,
     health: `${normalizedBaseUrl}/health`,
     runtime: `${normalizedBaseUrl}/admin/runtime`,
-    summary: `${normalizedBaseUrl}/admin/summary`
+    summary: `${normalizedBaseUrl}/admin/summary`,
+    readiness: `${normalizedBaseUrl}/admin/dashboard-readiness`,
+    overview: `${normalizedBaseUrl}/admin/dashboard-overview`
   };
 };
 
