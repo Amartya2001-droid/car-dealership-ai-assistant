@@ -7,7 +7,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 - Conversation logic with mood/topic/urgency detection.
 - Voice persona selector (`sales_pro`, `concierge`, `tech_expert`).
 - Vehicle matchmaker from caller-described preferences.
-- JSON data storage for leads and follow-ups.
+- Supabase-first persistence for leads/follow-ups/appointments with automatic JSON fallback.
 - Morning dispatch scheduler for staff digest + customer follow-up SMS.
 - Knowledge base snapshot API + website sync script.
 - Test-drive scheduling with Google Calendar provider + mock fallback.
@@ -25,6 +25,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```bash
    cp .env.example .env
    ```
+   For production, start from `.env.production.example` and set real OpenAI, Twilio, Supabase, and public `BASE_URL` values.
 3. Start server:
    ```bash
    npm run dev
@@ -89,9 +90,13 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```
 
 13. Optional environment validation:
-   ```bash
-   npm run check:env
-   ```
+    ```bash
+    npm run check:env
+    ```
+    For production gating, use:
+    ```bash
+    npm run check:production
+    ```
 
 14. Optional dashboard links snapshot:
    ```bash
@@ -137,12 +142,14 @@ Behavior:
    - `TWILIO_PHONE_NUMBER`
 
 The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
+Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and run `DEPLOYMENT_URL=https://your-public-url npm run verify:production-url`.
 
 ## API Endpoints
 - `GET /dashboard`
 - `GET /health`
 - `GET /config/personas`
 - `GET /admin/runtime`
+- `GET /admin/dashboard-overview`
 - `POST /webhooks/twilio/voice`
 - `POST /webhooks/twilio/voice/collect`
 - `POST /simulate/call`
@@ -183,13 +190,14 @@ For one combined payload covering summary, runtime, health, and readiness, use `
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 
 ## Runtime Status
-Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.
+Use `GET /admin/runtime` or `npm run check:env` to inspect requested provider, active provider, and whether Supabase credentials are present.
+For Supabase schema/environment setup, see [`docs/supabase-setup.md`](./docs/supabase-setup.md).
 
 ## Next Planned Milestones
-- Day 4: Add Supabase/Firestore persistence and dashboard skeleton.
-- Day 5: Add OpenAI Realtime voice mode + sentiment tuning.
-- Day 6: Add outbound follow-up personalization and multilingual support.
-- Day 7: Hardening, deployment pipeline, observability, and demo proof.
+- Day 4: OpenAI voice enhancements + stronger sentiment adaptation.
+- Day 5: Follow-up personalization and multilingual templates.
+- Day 6: Deployment hardening, observability, and CI checks.
+- Day 7: Demo recording and final documentation polish.
 
 ## Calendar Integration
 Scheduling supports two modes:

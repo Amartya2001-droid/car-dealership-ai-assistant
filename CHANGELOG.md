@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-11 (Supabase Persistence)
+- Added `src/dataStore.js` with Supabase REST persistence for leads, follow-ups, and appointments.
+- Added automatic runtime fallback to local JSON persistence when Supabase is unavailable.
+- Migrated server/follow-up/scheduler flows to the shared async persistence adapter.
+- Updated environment docs with Supabase table schema and configurable table/column names.
+- Added persistence status tests for `local_fallback` and `remote_ready` modes.
+
 ## 2026-03-17 (Dashboard Ops Polish)
 - Added a manual dashboard refresh button and filtered lead totals.
 - Added showroom links in lead cards, appointment status badges, and callback tokens.

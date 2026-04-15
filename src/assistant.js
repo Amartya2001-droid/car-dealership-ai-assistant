@@ -1,4 +1,3 @@
-const OpenAI = require('openai');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
@@ -119,6 +118,7 @@ const generateAiReply = async ({ callerName, callerInput, persona, context }) =>
     return mockReply({ callerName, callerInput, persona, context });
   }
 
+  const OpenAI = require('openai');
   const client = new OpenAI({ apiKey: config.openaiApiKey });
   const prompt = `
 You are an after-hours AI voice agent for ${config.dealershipName}.

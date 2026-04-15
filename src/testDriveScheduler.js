@@ -3,7 +3,7 @@ const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
 
 const config = require('./config');
-const { appendAppointment } = require('./storage');
+const { appendAppointment } = require('./dataStore');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -95,7 +95,7 @@ const scheduleTestDrive = async (lead) => {
   };
 
   if (!canUseGoogleCalendar()) {
-    return appendAppointment({
+    return await appendAppointment({
       ...baseRecord,
       provider: 'mock_calendar',
       providerEventId: null,
@@ -105,12 +105,12 @@ const scheduleTestDrive = async (lead) => {
 
   try {
     const providerDetails = await scheduleWithGoogle({ lead, startAt: scheduledFor });
-    return appendAppointment({
+    return await appendAppointment({
       ...baseRecord,
       ...providerDetails
     });
   } catch (error) {
-    return appendAppointment({
+    return await appendAppointment({
       ...baseRecord,
       provider: 'mock_calendar',
       providerEventId: null,

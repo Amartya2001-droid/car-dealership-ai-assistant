@@ -1,11 +1,8 @@
-const { appendLead, files, readJson, writeJson } = require('../src/storage');
+const { appendLead, listLeads } = require('../src/dataStore');
+const { files, writeJson } = require('../src/storage');
 const { buildLeadRecord } = require('../src/assistant');
 
 const reset = process.argv.includes('--reset');
-
-if (reset) {
-  writeJson(files.leads, []);
-}
 
 const samples = [
   {
@@ -24,8 +21,19 @@ const samples = [
   }
 ];
 
-for (const sample of samples) {
-  appendLead(buildLeadRecord(sample));
-}
+const run = async () => {
+  if (reset) {
+    writeJson(files.leads, []);
+  }
 
-console.log(`Seeded ${samples.length} demo leads. Total leads: ${readJson(files.leads, []).length}`);
+  for (const sample of samples) {
+    await appendLead(buildLeadRecord(sample));
+  }
+
+  console.log(`Seeded ${samples.length} demo leads. Total leads: ${(await listLeads()).length}`);
+};
+
+run().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

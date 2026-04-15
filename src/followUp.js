@@ -1,10 +1,14 @@
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
-const twilio = require('twilio');
 
 const config = require('./config');
-const { readJson, writeJson, files } = require('./storage');
+const {
+  listLeads,
+  listFollowUps,
+  appendFollowUp,
+  updateFollowUpById
+} = require('./dataStore');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -12,9 +16,20 @@ dayjs.extend(timezone);
 const canUseTwilio = () =>
   Boolean(config.twilio.accountSid && config.twilio.authToken && config.twilio.phoneNumber);
 
-const twilioClient = canUseTwilio()
-  ? twilio(config.twilio.accountSid, config.twilio.authToken)
-  : null;
+let twilioClient = null;
+
+const getTwilioClient = () => {
+  if (!canUseTwilio()) {
+    return null;
+  }
+
+  if (!twilioClient) {
+    const twilio = require('twilio');
+    twilioClient = twilio(config.twilio.accountSid, config.twilio.authToken);
+  }
+
+  return twilioClient;
+};
 
 const summarizeLead = (lead) => {
   const vehicle = lead.recommendedVehicles?.[0];
@@ -37,12 +52,13 @@ const sendStaffDigest = async (leads) => {
   if (!leads.length) return { sent: false, reason: 'no_leads' };
 
   const digest = leads.map(summarizeLead).join('\n');
+  const client = getTwilioClient();
 
-  if (!twilioClient || !config.staffAlertPhone) {
+  if (!client || !config.staffAlertPhone) {
     return { sent: false, reason: 'twilio_unavailable', digest };
   }
 
-  await twilioClient.messages.create({
+  await client.messages.create({
     from: config.twilio.phoneNumber,
     to: config.staffAlertPhone,
     body: `Morning lead digest:\n${digest.slice(0, 1200)}`
@@ -63,29 +79,30 @@ const sendCustomerFollowUps = async (followups) => {
       continue;
     }
 
-    if (!twilioClient) {
-      item.status = 'ready_without_provider';
+    const client = getTwilioClient();
+    if (!client) {
+      await updateFollowUpById(item.id, { status: 'ready_without_provider' });
       skipped += 1;
       continue;
     }
 
-    await twilioClient.messages.create({
+    await client.messages.create({
       from: config.twilio.phoneNumber,
       to: item.phone,
       body: item.message
     });
 
-    item.status = 'sent';
-    item.sentAt = new Date().toISOString();
+    await updateFollowUpById(item.id, {
+      status: 'sent',
+      sentAt: new Date().toISOString()
+    });
     sent += 1;
   }
 
-  writeJson(files.followups, followups);
   return { sent, skipped };
 };
 
-const queueFollowUp = (lead, assistantReply) => {
-  const followups = readJson(files.followups, []);
+const queueFollowUp = async (lead, assistantReply) => {
   const callbackText = lead.callbackWindow
     ? ` Preferred callback window: ${lead.callbackWindow.label}.`
     : '';
@@ -106,14 +123,11 @@ const queueFollowUp = (lead, assistantReply) => {
     createdAt: new Date().toISOString()
   };
 
-  followups.push(record);
-  writeJson(files.followups, followups);
-  return record;
+  return appendFollowUp(record);
 };
 
 const runMorningDispatch = async () => {
-  const leads = readJson(files.leads, []);
-  const followups = readJson(files.followups, []);
+  const [leads, followups] = await Promise.all([listLeads(), listFollowUps()]);
 
   const today = dayjs().tz(config.dealershipTimezone).format('YYYY-MM-DD');
   const queuedToday = leads.filter((lead) => lead.createdAt.startsWith(today));
