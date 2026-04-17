@@ -7,6 +7,7 @@ const checks = [
   { name: 'summary', path: '/admin/summary', requiredStatus: 200 },
   { name: 'dashboard readiness', path: '/admin/dashboard-readiness', requiredStatus: 200 },
   { name: 'dashboard overview', path: '/admin/dashboard-overview', requiredStatus: 200 },
+  { name: 'production readiness', path: '/admin/production-readiness', requiredStatus: 200 },
   { name: 'twilio voice webhook', path: '/webhooks/twilio/voice', method: 'POST', requiredStatus: 200 }
 ];
 

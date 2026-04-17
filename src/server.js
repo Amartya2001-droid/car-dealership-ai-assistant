@@ -22,6 +22,7 @@ const { validateSimulatedCall, validateCallbackWindow } = require('./validation'
 const { getPersistenceStatus } = require('./persistence');
 const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('./dashboardMeta');
 const { buildDashboardOverview } = require('./dashboardOverview');
+const { buildProductionReadiness } = require('./productionReadiness');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -112,6 +113,10 @@ const createApp = () => {
         readiness: getDashboardReadiness(config.baseUrl)
       })
     );
+  });
+
+  app.get('/admin/production-readiness', (_req, res) => {
+    res.json(buildProductionReadiness({ baseUrl: config.baseUrl }));
   });
 
   app.get('/dashboard', (_req, res) => {

@@ -30,7 +30,8 @@ const getDashboardLinks = (baseUrl) => {
     runtime: `${normalizedBaseUrl}/admin/runtime`,
     summary: `${normalizedBaseUrl}/admin/summary`,
     readiness: `${normalizedBaseUrl}/admin/dashboard-readiness`,
-    overview: `${normalizedBaseUrl}/admin/dashboard-overview`
+    overview: `${normalizedBaseUrl}/admin/dashboard-overview`,
+    productionReadiness: `${normalizedBaseUrl}/admin/production-readiness`
   };
 };
 
