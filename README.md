@@ -97,6 +97,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
     ```bash
     npm run check:production
     ```
+    The same production gate is also available at `GET /admin/production-readiness`.
 
 14. Optional dashboard links snapshot:
    ```bash
@@ -150,6 +151,7 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /config/personas`
 - `GET /admin/runtime`
 - `GET /admin/dashboard-overview`
+- `GET /admin/production-readiness`
 - `POST /webhooks/twilio/voice`
 - `POST /webhooks/twilio/voice/collect`
 - `POST /simulate/call`

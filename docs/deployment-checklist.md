@@ -2,6 +2,7 @@
 
 - Run `npm test` and confirm the full suite passes.
 - Run `npm run check:production` and resolve every `missingProduction` entry before a real pilot.
+- Confirm `GET /admin/production-readiness` returns `"productionReady": true` on the deployed app.
 - Set `NODE_ENV=production`.
 - Set `BASE_URL` to the public HTTPS backend URL.
 - Configure `OPENAI_API_KEY` if using non-mock assistant replies.
@@ -21,6 +22,7 @@ Treat the system as pilot-ready only when:
 
 - `npm test` passes locally or in CI.
 - `npm run check:production` returns `"productionReady": true`.
+- `GET /admin/production-readiness` returns `"productionReady": true`.
 - `npm run dashboard:status` returns `"ready": true`.
 - `npm run verify:production-url` passes against the deployed HTTPS URL.
 - A real Twilio call creates a lead visible in `/admin/leads` and `/dashboard`.
