@@ -1,5 +1,15 @@
 node_modules
+frontend/node_modules
 .env
+.env.*
+!.env.example
+!.env.production.example
 .DS_Store
 npm-debug.log*
 data/*.tmp
+frontend/build
+coverage
+.cache
+.miniforge
+.venv
+dist
