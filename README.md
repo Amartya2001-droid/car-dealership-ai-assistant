@@ -98,6 +98,10 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
     npm run check:production
     ```
     The same production gate is also available at `GET /admin/production-readiness`.
+    For a more operator-friendly snapshot with suggested actions, use:
+    ```bash
+    npm run print:production
+    ```
 
 14. Optional dashboard links snapshot:
    ```bash
