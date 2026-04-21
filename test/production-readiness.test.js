@@ -61,6 +61,8 @@ test('production readiness reports local fallback gaps', () => {
   assert.equal(readiness.integrations.openai, 'mock');
   assert.equal(readiness.storage.activeProvider, 'local_json');
   assert.ok(readiness.missingProduction.includes('TWILIO_ACCOUNT_SID'));
+  assert.ok(readiness.nextSteps.some((step) => step.includes('Supabase credentials')));
+  assert.ok(readiness.nextSteps.some((step) => step.includes('Twilio credentials')));
 });
 
 test('production readiness passes when required providers are configured', () => {
@@ -88,4 +90,5 @@ test('production readiness passes when required providers are configured', () =>
   assert.equal(readiness.integrations.twilio, 'configured');
   assert.equal(readiness.storage.activeProvider, 'supabase');
   assert.equal(readiness.missingProduction.length, 0);
+  assert.ok(readiness.nextSteps.some((step) => step.includes('verify:production-url')));
 });
