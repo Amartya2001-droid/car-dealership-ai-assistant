@@ -21,6 +21,7 @@
     "check:env": "node scripts/check-env.js",
     "check:production": "node scripts/check-env.js",
     "print:production": "node scripts/print-production-readiness.js",
+    "demo:ready": "node scripts/print-demo-readiness.js",
     "verify:production-url": "node scripts/verify-production-url.js",
     "git:health": "bash scripts/check-git-health.sh",
     "dashboard:check": "bash scripts/check-dashboard-route.sh",
