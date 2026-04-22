@@ -23,6 +23,7 @@ const { getPersistenceStatus } = require('./persistence');
 const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('./dashboardMeta');
 const { buildDashboardOverview } = require('./dashboardOverview');
 const { buildProductionReadiness } = require('./productionReadiness');
+const { buildDemoReadiness } = require('./demoReadiness');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -117,6 +118,35 @@ const createApp = () => {
 
   app.get('/admin/production-readiness', (_req, res) => {
     res.json(buildProductionReadiness({ baseUrl: config.baseUrl }));
+  });
+
+  app.get('/admin/demo-readiness', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    res.json(
+      buildDemoReadiness({
+        summary: {
+          leads: summarizeLeads(leads),
+          appointments: {
+            total: appointments.length,
+            confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+            pending: appointments.filter((item) => item.status !== 'confirmed').length
+          },
+          followups: {
+            total: followups.length,
+            queued: followups.filter((item) => item.status === 'queued').length,
+            sent: followups.filter((item) => item.status === 'sent').length
+          }
+        },
+        dashboard: getDashboardReadiness(config.baseUrl),
+        production: buildProductionReadiness({ baseUrl: config.baseUrl }),
+        baseUrl: config.baseUrl
+      })
+    );
   });
 
   app.get('/dashboard', (_req, res) => {
