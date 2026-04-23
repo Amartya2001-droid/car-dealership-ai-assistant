@@ -1,6 +1,8 @@
-const { appendLead, listLeads } = require('../src/dataStore');
+const { appendLead, listLeads, listAppointments, listFollowUps } = require('../src/dataStore');
 const { files, writeJson } = require('../src/storage');
 const { buildLeadRecord } = require('../src/assistant');
+const { scheduleTestDrive } = require('../src/testDriveScheduler');
+const { queueFollowUp } = require('../src/followUp');
 
 const reset = process.argv.includes('--reset');
 
@@ -24,13 +26,29 @@ const samples = [
 const run = async () => {
   if (reset) {
     writeJson(files.leads, []);
+    writeJson(files.appointments, []);
+    writeJson(files.followups, []);
   }
 
   for (const sample of samples) {
-    await appendLead(buildLeadRecord(sample));
+    const lead = await appendLead(buildLeadRecord(sample));
+    if (lead.topic === 'test_drive') {
+      await scheduleTestDrive(lead);
+    }
+    if (lead.consentFollowUp) {
+      await queueFollowUp(lead, 'Demo assistant reply queued for next-business-day follow-up.');
+    }
   }
 
-  console.log(`Seeded ${samples.length} demo leads. Total leads: ${(await listLeads()).length}`);
+  const [leads, appointments, followups] = await Promise.all([
+    listLeads(),
+    listAppointments(),
+    listFollowUps()
+  ]);
+
+  console.log(
+    `Seeded ${samples.length} demo leads. Totals: ${leads.length} leads, ${appointments.length} appointments, ${followups.length} follow-ups.`
+  );
 };
 
 run().catch((error) => {
