@@ -15,6 +15,7 @@
     "sync": "node scripts/sync-knowledge.js",
     "contrib": "bash scripts/daily-contribution.sh",
     "seed:demo": "node scripts/seed-demo-data.js",
+    "demo:prepare": "node scripts/prepare-demo.js",
     "smoke": "bash scripts/smoke-check.sh",
     "summary": "node scripts/print-summary.js",
     "export:leads": "node scripts/export-leads.js",
