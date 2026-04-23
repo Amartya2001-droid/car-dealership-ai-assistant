@@ -19,7 +19,7 @@ test('buildDemoReadiness requires dashboard and demo data', () => {
   assert.equal(readiness.checks.dashboardReady, false);
   assert.equal(readiness.checks.hasDemoData, false);
   assert.ok(readiness.nextSteps.some((step) => step.includes('dashboard:refresh')));
-  assert.ok(readiness.nextSteps.some((step) => step.includes('seed:demo')));
+  assert.ok(readiness.nextSteps.some((step) => step.includes('demo:prepare')));
 });
 
 test('buildDemoReadiness passes for local demo data and dashboard', () => {

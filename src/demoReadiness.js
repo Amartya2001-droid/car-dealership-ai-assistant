@@ -11,7 +11,7 @@ const buildDemoReadiness = ({ summary, dashboard, production, baseUrl = 'http://
     nextSteps.push('Run npm run dashboard:refresh before recording the dashboard segment.');
   }
   if (!hasDemoData) {
-    nextSteps.push('Run npm run seed:demo or POST /simulate/call to create demo leads.');
+    nextSteps.push('Run npm run demo:prepare or POST /simulate/call to create demo leads.');
   }
   if (!production?.productionReady) {
     nextSteps.push('Frame the recording as a local demo or supervised pilot until production credentials are configured.');
