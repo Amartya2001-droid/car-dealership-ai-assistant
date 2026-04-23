@@ -73,23 +73,30 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```bash
    npm run seed:demo
    ```
+   This creates demo leads plus related appointment/follow-up records.
 
-10. Optional local smoke check:
+10. Optional full demo preparation:
+   ```bash
+   npm run demo:prepare
+   ```
+   This resets local demo data, reseeds leads/appointments/follow-ups, and prints the demo readiness report.
+
+11. Optional local smoke check:
    ```bash
    npm run smoke
    ```
 
-11. Optional local summary snapshot:
+12. Optional local summary snapshot:
    ```bash
    npm run summary
    ```
 
-12. Optional lead export:
+13. Optional lead export:
    ```bash
    npm run export:leads
    ```
 
-13. Optional environment validation:
+14. Optional environment validation:
     ```bash
     npm run check:env
     ```
@@ -103,22 +110,22 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
     npm run print:production
     ```
 
-14. Optional dashboard links snapshot:
+15. Optional dashboard links snapshot:
    ```bash
    npm run dashboard:links
    ```
 
-15. Optional dashboard readiness snapshot:
+16. Optional dashboard readiness snapshot:
    ```bash
    npm run dashboard:status
    ```
 
-16. Optional dashboard overview snapshot:
+17. Optional dashboard overview snapshot:
    ```bash
    npm run dashboard:overview
    ```
 
-17. Optional demo readiness snapshot:
+18. Optional demo readiness snapshot:
    ```bash
    npm run demo:ready
    ```
