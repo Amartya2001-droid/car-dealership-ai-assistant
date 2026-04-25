@@ -16,6 +16,7 @@
     "contrib": "bash scripts/daily-contribution.sh",
     "seed:demo": "node scripts/seed-demo-data.js",
     "demo:prepare": "node scripts/prepare-demo.js",
+    "demo:scenario": "node scripts/run-demo-scenario.js",
     "smoke": "bash scripts/smoke-check.sh",
     "summary": "node scripts/print-summary.js",
     "export:leads": "node scripts/export-leads.js",

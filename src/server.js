@@ -24,6 +24,7 @@ const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require
 const { buildDashboardOverview } = require('./dashboardOverview');
 const { buildProductionReadiness } = require('./productionReadiness');
 const { buildDemoReadiness } = require('./demoReadiness');
+const { listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -147,6 +148,27 @@ const createApp = () => {
         baseUrl: config.baseUrl
       })
     );
+  });
+
+  app.get('/admin/demo-scenarios', (_req, res) => {
+    res.json({ scenarios: listDemoScenarios() });
+  });
+
+  app.post('/admin/demo/reset', async (_req, res) => {
+    const result = await resetDemoData();
+    res.json(result);
+  });
+
+  app.post('/admin/demo/seed', async (req, res) => {
+    const result = await seedDemoData({ reset: Boolean(req.body?.reset) });
+    res.json(result);
+  });
+
+  app.post('/admin/demo/scenarios/:scenarioId/run', async (req, res) => {
+    const result = await runDemoScenario(req.params.scenarioId, {
+      assistantReply: req.body?.assistantReply
+    });
+    res.json(result);
   });
 
   app.get('/dashboard', (_req, res) => {
