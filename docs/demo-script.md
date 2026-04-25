@@ -4,28 +4,38 @@
 
 1. Run `npm run demo:prepare`.
 2. Confirm the output reports `"ready": true`.
-3. Start the app with `npm start` or `npm run dev`.
-4. Open `/dashboard` or `/ops-dashboard/`.
+3. Optionally run `npm run demo:scenario` to list the named scenario ids.
+4. Start the app with `npm start` or `npm run dev`.
+5. Open `/dashboard` or `/ops-dashboard/`.
 
 ## Recording Flow
 
 1. Show `GET /health` returning service metadata.
-2. Show `npm run demo:ready` or `GET /admin/demo-readiness` so viewers see the dashboard and demo data gates.
-3. Simulate a caller asking for an SUV, test drive, and callback:
+2. Show `npm run demo:ready` or `GET /admin/demo-readiness` so viewers see the dashboard and demo-data gates.
+3. Show `GET /admin/demo-scenarios` or `npm run demo:scenario` to preview the available walkthrough scenarios.
+4. Run one named scenario live:
    ```bash
-   curl -X POST http://localhost:3000/simulate/call \
-     -H 'Content-Type: application/json' \
-     -d '{"phone":"+19025550123","callerName":"Taylor","message":"I want a small hybrid SUV under $40000, book a test drive tomorrow at 3 pm, and text me a follow up","persona":"concierge","optInFollowUp":true}'
+   npm run demo:scenario -- test-drive-booking
    ```
-4. Show the returned assistant reply, lead record, showroom asset, appointment, and follow-up object.
-5. Show `/admin/summary` reflecting the new lead.
-6. Show `/admin/appointments` with the scheduled test drive.
-7. Show `/admin/followups` with the queued customer follow-up.
-8. End on `/dashboard` or `/ops-dashboard/` with the updated KPI cards.
+5. Show the returned lead, appointment, and queued follow-up.
+6. Show `/admin/summary` reflecting the updated counts.
+7. Show `/admin/appointments` with the scheduled test drive.
+8. Show `/admin/followups` with the queued customer follow-up.
+9. End on `/dashboard` or `/ops-dashboard/` with the updated KPI cards.
+
+## Alternative Live API Flow
+
+If you want to demo the HTTP endpoints directly instead of the CLI:
+
+```bash
+curl http://localhost:3000/admin/demo-scenarios
+curl -X POST http://localhost:3000/admin/demo/scenarios/test-drive-booking/run
+```
 
 ## Talk Track
 
-- The system accepts Twilio-compatible after-hours calls and also supports local simulated calls for demos.
+- The system accepts Twilio-compatible after-hours calls and also supports local simulated/demo scenarios.
 - Leads are tagged by topic, urgency, mood, callback window, and vehicle match.
+- Appointments and follow-up messages are created automatically during the scenario flow.
 - The dashboard gives staff a next-morning triage surface.
 - Production readiness is visible through `/admin/production-readiness`; demo readiness is visible through `/admin/demo-readiness`.

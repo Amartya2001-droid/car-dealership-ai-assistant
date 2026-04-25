@@ -81,22 +81,28 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```
    This resets local demo data, reseeds leads/appointments/follow-ups, and prints the demo readiness report.
 
-11. Optional local smoke check:
+11. Optional named demo scenario runner:
+   ```bash
+   npm run demo:scenario -- test-drive-booking
+   ```
+   Run without an argument to list the available scenario ids.
+
+12. Optional local smoke check:
    ```bash
    npm run smoke
    ```
 
-12. Optional local summary snapshot:
+13. Optional local summary snapshot:
    ```bash
    npm run summary
    ```
 
-13. Optional lead export:
+14. Optional lead export:
    ```bash
    npm run export:leads
    ```
 
-14. Optional environment validation:
+15. Optional environment validation:
     ```bash
     npm run check:env
     ```
@@ -110,22 +116,22 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
     npm run print:production
     ```
 
-15. Optional dashboard links snapshot:
+16. Optional dashboard links snapshot:
    ```bash
    npm run dashboard:links
    ```
 
-16. Optional dashboard readiness snapshot:
+17. Optional dashboard readiness snapshot:
    ```bash
    npm run dashboard:status
    ```
 
-17. Optional dashboard overview snapshot:
+18. Optional dashboard overview snapshot:
    ```bash
    npm run dashboard:overview
    ```
 
-18. Optional demo readiness snapshot:
+19. Optional demo readiness snapshot:
    ```bash
    npm run demo:ready
    ```
@@ -170,6 +176,10 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /admin/dashboard-overview`
 - `GET /admin/production-readiness`
 - `GET /admin/demo-readiness`
+- `GET /admin/demo-scenarios`
+- `POST /admin/demo/reset`
+- `POST /admin/demo/seed`
+- `POST /admin/demo/scenarios/:scenarioId/run`
 - `POST /webhooks/twilio/voice`
 - `POST /webhooks/twilio/voice/collect`
 - `POST /simulate/call`
