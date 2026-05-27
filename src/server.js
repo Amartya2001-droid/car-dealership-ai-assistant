@@ -25,6 +25,7 @@ const { buildDashboardOverview } = require('./dashboardOverview');
 const { buildProductionReadiness } = require('./productionReadiness');
 const { buildDemoReadiness } = require('./demoReadiness');
 const { listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
+const { buildDemoOverview } = require('./demoOverview');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -146,6 +147,58 @@ const createApp = () => {
         dashboard: getDashboardReadiness(config.baseUrl),
         production: buildProductionReadiness({ baseUrl: config.baseUrl }),
         baseUrl: config.baseUrl
+      })
+    );
+  });
+
+  app.get('/admin/demo-overview', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    const summary = {
+      leads: summarizeLeads(leads),
+      appointments: {
+        total: appointments.length,
+        confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+        pending: appointments.filter((item) => item.status !== 'confirmed').length
+      },
+      followups: {
+        total: followups.length,
+        queued: followups.filter((item) => item.status === 'queued').length,
+        sent: followups.filter((item) => item.status === 'sent').length
+      }
+    };
+    const production = buildProductionReadiness({ baseUrl: config.baseUrl });
+    const readiness = buildDemoReadiness({
+      summary,
+      dashboard: getDashboardReadiness(config.baseUrl),
+      production,
+      baseUrl: config.baseUrl
+    });
+
+    res.json(
+      buildDemoOverview({
+        readiness,
+        production,
+        scenarios: listDemoScenarios(),
+        summary,
+        commands: {
+          prepare: 'npm run demo:prepare',
+          ready: 'npm run demo:ready',
+          scenarioList: 'npm run demo:scenario',
+          scenarioRunExample: 'npm run demo:scenario -- test-drive-booking'
+        },
+        routes: {
+          demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
+          productionReadiness: `${config.baseUrl}/admin/production-readiness`,
+          demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
+          summary: `${config.baseUrl}/admin/summary`,
+          dashboard: `${config.baseUrl}/dashboard`,
+          opsDashboard: `${config.baseUrl}/ops-dashboard/`
+        }
       })
     );
   });
