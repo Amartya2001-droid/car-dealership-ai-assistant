@@ -137,6 +137,12 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```
    The same payload is available at `GET /admin/demo-readiness` and is meant for deciding whether the final recorded walkthrough has dashboard access and demo lead data ready.
 
+20. Optional full demo overview snapshot:
+   ```bash
+   npm run demo:overview
+   ```
+   This combines readiness, production status, named scenarios, suggested commands, routes, and a recording flow checklist. The same payload is available at `GET /admin/demo-overview`.
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
@@ -176,6 +182,7 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /admin/dashboard-overview`
 - `GET /admin/production-readiness`
 - `GET /admin/demo-readiness`
+- `GET /admin/demo-overview`
 - `GET /admin/demo-scenarios`
 - `POST /admin/demo/reset`
 - `POST /admin/demo/seed`
