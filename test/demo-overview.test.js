@@ -10,13 +10,15 @@ test('buildDemoOverview returns scenarios, commands, routes, and recording flow'
     scenarios: [{ id: 'test-drive-booking' }],
     summary: { leads: { total: 2 } },
     commands: { prepare: 'npm run demo:prepare' },
-    routes: { dashboard: 'http://localhost:3000/dashboard' }
+    routes: { dashboard: 'http://localhost:3000/dashboard' },
+    launchChecklist: { blockerCount: 2 }
   });
 
   assert.equal(overview.readiness.ready, true);
   assert.equal(overview.scenarios[0].id, 'test-drive-booking');
   assert.equal(overview.commands.prepare, 'npm run demo:prepare');
   assert.equal(overview.routes.dashboard, 'http://localhost:3000/dashboard');
+  assert.equal(overview.launchChecklist.blockerCount, 2);
   assert.ok(Array.isArray(overview.recordingFlow));
   assert.ok(overview.recordingFlow.length >= 4);
 });

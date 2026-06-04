@@ -23,6 +23,7 @@ import FollowupSection from './FollowupSection';
 import QuickLinksPanel from './QuickLinksPanel';
 import LoadingSkeleton from './LoadingSkeleton';
 import ErrorState from './ErrorState';
+import DemoOperationsPanel from './DemoOperationsPanel';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
 const REFRESH_INTERVAL = 30000; // 30 seconds
@@ -43,6 +44,7 @@ const Dashboard = () => {
   const [runtime, setRuntime] = useState(null);
   const [health, setHealth] = useState(null);
   const [dashboardReadiness, setDashboardReadiness] = useState(null);
+  const [demoOverview, setDemoOverview] = useState(null);
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,14 +57,15 @@ const Dashboard = () => {
     }
     
     try {
-      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes, dashboardReadinessRes] = await Promise.all([
+      const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes, healthRes, dashboardReadinessRes, demoOverviewRes] = await Promise.all([
         apiGet('/admin/summary'),
         apiGet('/admin/leads'),
         apiGet('/admin/appointments'),
         apiGet('/admin/followups'),
         apiGet('/admin/runtime'),
         apiGet('/health'),
-        apiGet('/admin/dashboard-readiness')
+        apiGet('/admin/dashboard-readiness'),
+        apiGet('/admin/demo-overview')
       ]);
 
       setSummary(summaryRes.data);
@@ -72,6 +75,7 @@ const Dashboard = () => {
       setRuntime(runtimeRes.data);
       setHealth(healthRes.data);
       setDashboardReadiness(dashboardReadinessRes.data);
+      setDemoOverview(demoOverviewRes.data);
       setLastUpdated(new Date());
       setError(null);
       
@@ -268,6 +272,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lead Monitoring - Takes 2 columns */}
           <div className="lg:col-span-2 space-y-6">
+            <DemoOperationsPanel demoOverview={demoOverview} />
             <LeadMonitoring
               leads={filteredLeads}
               searchQuery={searchQuery}

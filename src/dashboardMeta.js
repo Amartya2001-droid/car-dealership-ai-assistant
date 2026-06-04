@@ -31,7 +31,11 @@ const getDashboardLinks = (baseUrl) => {
     summary: `${normalizedBaseUrl}/admin/summary`,
     readiness: `${normalizedBaseUrl}/admin/dashboard-readiness`,
     overview: `${normalizedBaseUrl}/admin/dashboard-overview`,
-    productionReadiness: `${normalizedBaseUrl}/admin/production-readiness`
+    productionReadiness: `${normalizedBaseUrl}/admin/production-readiness`,
+    demoReadiness: `${normalizedBaseUrl}/admin/demo-readiness`,
+    demoOverview: `${normalizedBaseUrl}/admin/demo-overview`,
+    demoScenarios: `${normalizedBaseUrl}/admin/demo-scenarios`,
+    launchChecklist: `${normalizedBaseUrl}/admin/launch-checklist`
   };
 };
 

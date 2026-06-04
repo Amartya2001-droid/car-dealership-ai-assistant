@@ -1,10 +1,11 @@
-const buildDemoOverview = ({ readiness, production, scenarios, summary, commands, routes }) => ({
+const buildDemoOverview = ({ readiness, production, scenarios, summary, commands, routes, launchChecklist }) => ({
   readiness,
   production,
   scenarios,
   summary,
   commands,
   routes,
+  launchChecklist,
   recordingFlow: [
     'Run demo preparation and confirm readiness is true.',
     'Open the dashboard and demo overview endpoints.',

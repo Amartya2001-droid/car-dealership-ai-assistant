@@ -26,6 +26,7 @@ const { buildProductionReadiness } = require('./productionReadiness');
 const { buildDemoReadiness } = require('./demoReadiness');
 const { listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
 const { buildDemoOverview } = require('./demoOverview');
+const { buildLaunchChecklist } = require('./launchChecklist');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -178,6 +179,29 @@ const createApp = () => {
       production,
       baseUrl: config.baseUrl
     });
+    const commands = {
+      prepare: 'npm run demo:prepare',
+      ready: 'npm run demo:ready',
+      scenarioList: 'npm run demo:scenario',
+      scenarioRunExample: 'npm run demo:scenario -- test-drive-booking',
+      launchChecklist: 'npm run launch:checklist',
+      verifyProduction: 'npm run verify:production-url'
+    };
+    const routes = {
+      demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
+      productionReadiness: `${config.baseUrl}/admin/production-readiness`,
+      demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
+      launchChecklist: `${config.baseUrl}/admin/launch-checklist`,
+      summary: `${config.baseUrl}/admin/summary`,
+      dashboard: `${config.baseUrl}/dashboard`,
+      opsDashboard: `${config.baseUrl}/ops-dashboard/`
+    };
+    const launchChecklist = buildLaunchChecklist({
+      production,
+      readiness,
+      commands,
+      routes
+    });
 
     res.json(
       buildDemoOverview({
@@ -185,18 +209,57 @@ const createApp = () => {
         production,
         scenarios: listDemoScenarios(),
         summary,
+        commands,
+        routes,
+        launchChecklist
+      })
+    );
+  });
+
+  app.get('/admin/launch-checklist', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    const summary = {
+      leads: summarizeLeads(leads),
+      appointments: {
+        total: appointments.length,
+        confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+        pending: appointments.filter((item) => item.status !== 'confirmed').length
+      },
+      followups: {
+        total: followups.length,
+        queued: followups.filter((item) => item.status === 'queued').length,
+        sent: followups.filter((item) => item.status === 'sent').length
+      }
+    };
+    const production = buildProductionReadiness({ baseUrl: config.baseUrl });
+    const readiness = buildDemoReadiness({
+      summary,
+      dashboard: getDashboardReadiness(config.baseUrl),
+      production,
+      baseUrl: config.baseUrl
+    });
+
+    res.json(
+      buildLaunchChecklist({
+        production,
+        readiness,
         commands: {
           prepare: 'npm run demo:prepare',
           ready: 'npm run demo:ready',
           scenarioList: 'npm run demo:scenario',
-          scenarioRunExample: 'npm run demo:scenario -- test-drive-booking'
+          launchChecklist: 'npm run launch:checklist',
+          verifyProduction: 'npm run verify:production-url'
         },
         routes: {
           demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
           productionReadiness: `${config.baseUrl}/admin/production-readiness`,
           demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
-          summary: `${config.baseUrl}/admin/summary`,
-          dashboard: `${config.baseUrl}/dashboard`,
+          launchChecklist: `${config.baseUrl}/admin/launch-checklist`,
           opsDashboard: `${config.baseUrl}/ops-dashboard/`
         }
       })

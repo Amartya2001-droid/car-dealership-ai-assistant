@@ -143,6 +143,12 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```
    This combines readiness, production status, named scenarios, suggested commands, routes, and a recording flow checklist. The same payload is available at `GET /admin/demo-overview`.
 
+21. Optional launch checklist snapshot:
+   ```bash
+   npm run launch:checklist
+   ```
+   This focuses on next-week rollout blockers, warnings, pilot status, and the commands/routes needed to clear them. The same payload is available at `GET /admin/launch-checklist`.
+
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
 
@@ -184,6 +190,7 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /admin/demo-readiness`
 - `GET /admin/demo-overview`
 - `GET /admin/demo-scenarios`
+- `GET /admin/launch-checklist`
 - `POST /admin/demo/reset`
 - `POST /admin/demo/seed`
 - `POST /admin/demo/scenarios/:scenarioId/run`
@@ -211,18 +218,22 @@ The monitoring UI at `/dashboard` shows:
 - lead volume and callback demand
 - recent leads with intent and callback preference
 - recent appointments and follow-up queue
+- a demo/production operations panel with recording flow, scenario routes, and readiness blockers
 - topic, status, and urgency breakdowns
 - lead search plus topic and status filters
 - runtime storage/default-persona visibility
 - an attention queue for urgent or callback-heavy leads
 - manual refresh controls and a last-updated stamp
 - direct quick links to the main admin JSON endpoints
+- launch-checklist visibility for next-week production prep
 - showroom brochure and walkaround links inside lead cards
 
 The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
 For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboard-status`, or `npm run dashboard:links`.
 For one combined payload covering route selection and build availability, use `GET /admin/dashboard-readiness` or `npm run dashboard:status`.
 For one combined payload covering summary, runtime, health, and readiness, use `GET /admin/dashboard-overview` or `npm run dashboard:overview`.
+For demo-operator control and walkthrough prep, use `GET /admin/demo-overview` or `npm run demo:overview`.
+For a go-live blocker list tied to next week’s rollout, use `GET /admin/launch-checklist` or `npm run launch:checklist`.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 
