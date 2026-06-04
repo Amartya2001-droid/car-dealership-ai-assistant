@@ -1,7 +1,21 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Database, Activity, FileText, Users, Calendar, Clock, Link as LinkIcon, LayoutDashboard } from 'lucide-react';
+import {
+  ExternalLink,
+  Database,
+  Activity,
+  FileText,
+  Users,
+  Calendar,
+  Clock,
+  Link as LinkIcon,
+  LayoutDashboard,
+  Sparkles,
+  PlayCircle,
+  ShieldCheck,
+  Flag
+} from 'lucide-react';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
 const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
@@ -61,6 +75,36 @@ const QuickLinksPanel = () => {
       url: buildApiUrl('/admin/dashboard-overview'),
       icon: <FileText className="h-4 w-4" />,
       color: 'text-slate-600'
+    },
+    {
+      label: 'Demo Overview',
+      url: buildApiUrl('/admin/demo-overview'),
+      icon: <Sparkles className="h-4 w-4" />,
+      color: 'text-violet-600'
+    },
+    {
+      label: 'Demo Readiness',
+      url: buildApiUrl('/admin/demo-readiness'),
+      icon: <PlayCircle className="h-4 w-4" />,
+      color: 'text-amber-600'
+    },
+    {
+      label: 'Production Readiness',
+      url: buildApiUrl('/admin/production-readiness'),
+      icon: <ShieldCheck className="h-4 w-4" />,
+      color: 'text-emerald-700'
+    },
+    {
+      label: 'Demo Scenarios',
+      url: buildApiUrl('/admin/demo-scenarios'),
+      icon: <Flag className="h-4 w-4" />,
+      color: 'text-stone-700'
+    },
+    {
+      label: 'Launch Checklist',
+      url: buildApiUrl('/admin/launch-checklist'),
+      icon: <ShieldCheck className="h-4 w-4" />,
+      color: 'text-rose-700'
     },
     {
       label: 'All Leads',

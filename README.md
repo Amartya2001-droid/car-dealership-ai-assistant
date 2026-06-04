@@ -7,7 +7,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 - Conversation logic with mood/topic/urgency detection.
 - Voice persona selector (`sales_pro`, `concierge`, `tech_expert`).
 - Vehicle matchmaker from caller-described preferences.
-- JSON data storage for leads and follow-ups.
+- Supabase-first persistence for leads/follow-ups/appointments with automatic JSON fallback.
 - Morning dispatch scheduler for staff digest + customer follow-up SMS.
 - Knowledge base snapshot API + website sync script.
 - Test-drive scheduling with Google Calendar provider + mock fallback.
@@ -25,6 +25,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```bash
    cp .env.example .env
    ```
+   For production, start from `.env.production.example` and set real OpenAI, Twilio, Supabase, and public `BASE_URL` values.
 3. Start server:
    ```bash
    npm run dev
@@ -72,41 +73,81 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```bash
    npm run seed:demo
    ```
+   This creates demo leads plus related appointment/follow-up records.
 
-10. Optional local smoke check:
+10. Optional full demo preparation:
+   ```bash
+   npm run demo:prepare
+   ```
+   This resets local demo data, reseeds leads/appointments/follow-ups, and prints the demo readiness report.
+
+11. Optional named demo scenario runner:
+   ```bash
+   npm run demo:scenario -- test-drive-booking
+   ```
+   Run without an argument to list the available scenario ids.
+
+12. Optional local smoke check:
    ```bash
    npm run smoke
    ```
 
-11. Optional local summary snapshot:
+13. Optional local summary snapshot:
    ```bash
    npm run summary
    ```
 
-12. Optional lead export:
+14. Optional lead export:
    ```bash
    npm run export:leads
    ```
 
-13. Optional environment validation:
-   ```bash
-   npm run check:env
-   ```
+15. Optional environment validation:
+    ```bash
+    npm run check:env
+    ```
+    For production gating, use:
+    ```bash
+    npm run check:production
+    ```
+    The same production gate is also available at `GET /admin/production-readiness`.
+    For a more operator-friendly snapshot with suggested actions, use:
+    ```bash
+    npm run print:production
+    ```
 
-14. Optional dashboard links snapshot:
+16. Optional dashboard links snapshot:
    ```bash
    npm run dashboard:links
    ```
 
-15. Optional dashboard readiness snapshot:
+17. Optional dashboard readiness snapshot:
    ```bash
    npm run dashboard:status
    ```
 
-16. Optional dashboard overview snapshot:
+18. Optional dashboard overview snapshot:
    ```bash
    npm run dashboard:overview
    ```
+
+19. Optional demo readiness snapshot:
+   ```bash
+   npm run demo:ready
+   ```
+   The same payload is available at `GET /admin/demo-readiness` and is meant for deciding whether the final recorded walkthrough has dashboard access and demo lead data ready.
+
+20. Optional full demo overview snapshot:
+   ```bash
+   npm run demo:overview
+   ```
+   This combines readiness, production status, named scenarios, suggested commands, routes, and a recording flow checklist. The same payload is available at `GET /admin/demo-overview`.
+
+21. Optional launch checklist snapshot:
+   ```bash
+   npm run launch:checklist
+   ```
+   This focuses on next-week rollout blockers, warnings, pilot status, and the commands/routes needed to clear them. The same payload is available at `GET /admin/launch-checklist`.
 
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
@@ -137,12 +178,22 @@ Behavior:
    - `TWILIO_PHONE_NUMBER`
 
 The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
+Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and run `DEPLOYMENT_URL=https://your-public-url npm run verify:production-url`.
 
 ## API Endpoints
 - `GET /dashboard`
 - `GET /health`
 - `GET /config/personas`
 - `GET /admin/runtime`
+- `GET /admin/dashboard-overview`
+- `GET /admin/production-readiness`
+- `GET /admin/demo-readiness`
+- `GET /admin/demo-overview`
+- `GET /admin/demo-scenarios`
+- `GET /admin/launch-checklist`
+- `POST /admin/demo/reset`
+- `POST /admin/demo/seed`
+- `POST /admin/demo/scenarios/:scenarioId/run`
 - `POST /webhooks/twilio/voice`
 - `POST /webhooks/twilio/voice/collect`
 - `POST /simulate/call`
@@ -167,29 +218,34 @@ The monitoring UI at `/dashboard` shows:
 - lead volume and callback demand
 - recent leads with intent and callback preference
 - recent appointments and follow-up queue
+- a demo/production operations panel with recording flow, scenario routes, and readiness blockers
 - topic, status, and urgency breakdowns
 - lead search plus topic and status filters
 - runtime storage/default-persona visibility
 - an attention queue for urgent or callback-heavy leads
 - manual refresh controls and a last-updated stamp
 - direct quick links to the main admin JSON endpoints
+- launch-checklist visibility for next-week production prep
 - showroom brochure and walkaround links inside lead cards
 
 The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
 For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboard-status`, or `npm run dashboard:links`.
 For one combined payload covering route selection and build availability, use `GET /admin/dashboard-readiness` or `npm run dashboard:status`.
 For one combined payload covering summary, runtime, health, and readiness, use `GET /admin/dashboard-overview` or `npm run dashboard:overview`.
+For demo-operator control and walkthrough prep, use `GET /admin/demo-overview` or `npm run demo:overview`.
+For a go-live blocker list tied to next week’s rollout, use `GET /admin/launch-checklist` or `npm run launch:checklist`.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 
 ## Runtime Status
-Use `GET /admin/runtime` or `npm run check:env` to inspect the active storage mode and whether Supabase credentials are present.
+Use `GET /admin/runtime` or `npm run check:env` to inspect requested provider, active provider, and whether Supabase credentials are present.
+For Supabase schema/environment setup, see [`docs/supabase-setup.md`](./docs/supabase-setup.md).
 
 ## Next Planned Milestones
-- Day 4: Add Supabase/Firestore persistence and dashboard skeleton.
-- Day 5: Add OpenAI Realtime voice mode + sentiment tuning.
-- Day 6: Add outbound follow-up personalization and multilingual support.
-- Day 7: Hardening, deployment pipeline, observability, and demo proof.
+- Day 4: OpenAI voice enhancements + stronger sentiment adaptation.
+- Day 5: Follow-up personalization and multilingual templates.
+- Day 6: Deployment hardening, observability, and CI checks.
+- Day 7: Demo recording and final documentation polish.
 
 ## Calendar Integration
 Scheduling supports two modes:

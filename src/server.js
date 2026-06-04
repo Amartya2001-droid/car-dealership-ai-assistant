@@ -5,7 +5,15 @@ const path = require('path');
 const pkg = require('../package.json');
 
 const config = require('./config');
-const { appendLead, files, readJson, updateLeadById, updateAppointmentById, summarizeLeads } = require('./storage');
+const { summarizeLeads } = require('./storage');
+const {
+  listLeads,
+  listFollowUps,
+  listAppointments,
+  appendLead,
+  updateLeadById,
+  updateAppointmentById
+} = require('./dataStore');
 const { generateAiReply, buildContext, buildLeadRecord, personaStyles } = require('./assistant');
 const { queueFollowUp, runMorningDispatch, startFollowUpScheduler } = require('./followUp');
 const { updateKnowledgeBaseFromSnapshot } = require('./knowledgeBase');
@@ -14,6 +22,11 @@ const { validateSimulatedCall, validateCallbackWindow } = require('./validation'
 const { getPersistenceStatus } = require('./persistence');
 const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require('./dashboardMeta');
 const { buildDashboardOverview } = require('./dashboardOverview');
+const { buildProductionReadiness } = require('./productionReadiness');
+const { buildDemoReadiness } = require('./demoReadiness');
+const { listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
+const { buildDemoOverview } = require('./demoOverview');
+const { buildLaunchChecklist } = require('./launchChecklist');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -67,10 +80,12 @@ const createApp = () => {
     res.json(getDashboardReadiness(config.baseUrl));
   });
 
-  app.get('/admin/dashboard-overview', (_req, res) => {
-    const leads = readJson(files.leads, []);
-    const appointments = readJson(files.appointments, []);
-    const followups = readJson(files.followups, []);
+  app.get('/admin/dashboard-overview', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
 
     res.json(
       buildDashboardOverview({
@@ -102,6 +117,174 @@ const createApp = () => {
         readiness: getDashboardReadiness(config.baseUrl)
       })
     );
+  });
+
+  app.get('/admin/production-readiness', (_req, res) => {
+    res.json(buildProductionReadiness({ baseUrl: config.baseUrl }));
+  });
+
+  app.get('/admin/demo-readiness', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    res.json(
+      buildDemoReadiness({
+        summary: {
+          leads: summarizeLeads(leads),
+          appointments: {
+            total: appointments.length,
+            confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+            pending: appointments.filter((item) => item.status !== 'confirmed').length
+          },
+          followups: {
+            total: followups.length,
+            queued: followups.filter((item) => item.status === 'queued').length,
+            sent: followups.filter((item) => item.status === 'sent').length
+          }
+        },
+        dashboard: getDashboardReadiness(config.baseUrl),
+        production: buildProductionReadiness({ baseUrl: config.baseUrl }),
+        baseUrl: config.baseUrl
+      })
+    );
+  });
+
+  app.get('/admin/demo-overview', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    const summary = {
+      leads: summarizeLeads(leads),
+      appointments: {
+        total: appointments.length,
+        confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+        pending: appointments.filter((item) => item.status !== 'confirmed').length
+      },
+      followups: {
+        total: followups.length,
+        queued: followups.filter((item) => item.status === 'queued').length,
+        sent: followups.filter((item) => item.status === 'sent').length
+      }
+    };
+    const production = buildProductionReadiness({ baseUrl: config.baseUrl });
+    const readiness = buildDemoReadiness({
+      summary,
+      dashboard: getDashboardReadiness(config.baseUrl),
+      production,
+      baseUrl: config.baseUrl
+    });
+    const commands = {
+      prepare: 'npm run demo:prepare',
+      ready: 'npm run demo:ready',
+      scenarioList: 'npm run demo:scenario',
+      scenarioRunExample: 'npm run demo:scenario -- test-drive-booking',
+      launchChecklist: 'npm run launch:checklist',
+      verifyProduction: 'npm run verify:production-url'
+    };
+    const routes = {
+      demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
+      productionReadiness: `${config.baseUrl}/admin/production-readiness`,
+      demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
+      launchChecklist: `${config.baseUrl}/admin/launch-checklist`,
+      summary: `${config.baseUrl}/admin/summary`,
+      dashboard: `${config.baseUrl}/dashboard`,
+      opsDashboard: `${config.baseUrl}/ops-dashboard/`
+    };
+    const launchChecklist = buildLaunchChecklist({
+      production,
+      readiness,
+      commands,
+      routes
+    });
+
+    res.json(
+      buildDemoOverview({
+        readiness,
+        production,
+        scenarios: listDemoScenarios(),
+        summary,
+        commands,
+        routes,
+        launchChecklist
+      })
+    );
+  });
+
+  app.get('/admin/launch-checklist', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
+
+    const summary = {
+      leads: summarizeLeads(leads),
+      appointments: {
+        total: appointments.length,
+        confirmed: appointments.filter((item) => item.status === 'confirmed').length,
+        pending: appointments.filter((item) => item.status !== 'confirmed').length
+      },
+      followups: {
+        total: followups.length,
+        queued: followups.filter((item) => item.status === 'queued').length,
+        sent: followups.filter((item) => item.status === 'sent').length
+      }
+    };
+    const production = buildProductionReadiness({ baseUrl: config.baseUrl });
+    const readiness = buildDemoReadiness({
+      summary,
+      dashboard: getDashboardReadiness(config.baseUrl),
+      production,
+      baseUrl: config.baseUrl
+    });
+
+    res.json(
+      buildLaunchChecklist({
+        production,
+        readiness,
+        commands: {
+          prepare: 'npm run demo:prepare',
+          ready: 'npm run demo:ready',
+          scenarioList: 'npm run demo:scenario',
+          launchChecklist: 'npm run launch:checklist',
+          verifyProduction: 'npm run verify:production-url'
+        },
+        routes: {
+          demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
+          productionReadiness: `${config.baseUrl}/admin/production-readiness`,
+          demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
+          launchChecklist: `${config.baseUrl}/admin/launch-checklist`,
+          opsDashboard: `${config.baseUrl}/ops-dashboard/`
+        }
+      })
+    );
+  });
+
+  app.get('/admin/demo-scenarios', (_req, res) => {
+    res.json({ scenarios: listDemoScenarios() });
+  });
+
+  app.post('/admin/demo/reset', async (_req, res) => {
+    const result = await resetDemoData();
+    res.json(result);
+  });
+
+  app.post('/admin/demo/seed', async (req, res) => {
+    const result = await seedDemoData({ reset: Boolean(req.body?.reset) });
+    res.json(result);
+  });
+
+  app.post('/admin/demo/scenarios/:scenarioId/run', async (req, res) => {
+    const result = await runDemoScenario(req.params.scenarioId, {
+      assistantReply: req.body?.assistantReply
+    });
+    res.json(result);
   });
 
   app.get('/dashboard', (_req, res) => {
@@ -173,13 +356,13 @@ const createApp = () => {
       consentFollowUp: followUpOptIn
     });
 
-    appendLead(lead);
+    await appendLead(lead);
 
     let appointment = null;
     if (lead.topic === 'test_drive') {
       appointment = await scheduleTestDrive(lead);
       const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
-      updateLeadById(lead.id, {
+      await updateLeadById(lead.id, {
         status: leadStatus,
         appointmentId: appointment.id,
         lifecycle: pushLifecycleEvent(lead, leadStatus, 'Test drive scheduling requested')
@@ -187,7 +370,7 @@ const createApp = () => {
     }
 
     if (lead.consentFollowUp) {
-      queueFollowUp(lead, reply);
+      await queueFollowUp(lead, reply);
     }
 
     const twiml = new twilio.twiml.VoiceResponse();
@@ -225,23 +408,23 @@ const createApp = () => {
       consentFollowUp: optInFollowUp
     });
 
-    appendLead(lead);
+    await appendLead(lead);
     let responseLead = lead;
 
     let appointment = null;
     if (lead.topic === 'test_drive') {
       appointment = await scheduleTestDrive(lead);
       const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
-      responseLead = updateLeadById(lead.id, {
+      responseLead = (await updateLeadById(lead.id, {
         status: leadStatus,
         appointmentId: appointment.id,
         lifecycle: pushLifecycleEvent(lead, leadStatus, 'Test drive scheduling requested')
-      }) || lead;
+      })) || lead;
     }
 
     let followUp = null;
     if (lead.consentFollowUp) {
-      followUp = queueFollowUp(lead, reply);
+      followUp = await queueFollowUp(lead, reply);
     }
 
     return res.json({
@@ -257,22 +440,24 @@ const createApp = () => {
     res.json({ updated });
   });
 
-  app.get('/admin/leads', (_req, res) => {
-    res.json({ leads: readJson(files.leads, []) });
+  app.get('/admin/leads', async (_req, res) => {
+    res.json({ leads: await listLeads() });
   });
 
-  app.get('/admin/followups', (_req, res) => {
-    res.json({ followups: readJson(files.followups, []) });
+  app.get('/admin/followups', async (_req, res) => {
+    res.json({ followups: await listFollowUps() });
   });
 
-  app.get('/admin/appointments', (_req, res) => {
-    res.json({ appointments: readJson(files.appointments, []) });
+  app.get('/admin/appointments', async (_req, res) => {
+    res.json({ appointments: await listAppointments() });
   });
 
-  app.get('/admin/summary', (_req, res) => {
-    const leads = readJson(files.leads, []);
-    const appointments = readJson(files.appointments, []);
-    const followups = readJson(files.followups, []);
+  app.get('/admin/summary', async (_req, res) => {
+    const [leads, appointments, followups] = await Promise.all([
+      listLeads(),
+      listAppointments(),
+      listFollowUps()
+    ]);
 
     return res.json({
       leads: summarizeLeads(leads),
@@ -295,7 +480,7 @@ const createApp = () => {
       return res.status(400).json({ error: 'leadId is required' });
     }
 
-    const leads = readJson(files.leads, []);
+    const leads = await listLeads();
     const lead = leads.find((item) => item.id === leadId);
     if (!lead) {
       return res.status(404).json({ error: 'lead not found' });
@@ -304,7 +489,7 @@ const createApp = () => {
     const appointment = await scheduleTestDrive(lead);
     const leadStatus = appointment.status === 'scheduled' ? 'scheduled' : 'pending_schedule';
 
-    const updatedLead = updateLeadById(lead.id, {
+    const updatedLead = await updateLeadById(lead.id, {
       status: leadStatus,
       appointmentId: appointment.id,
       lifecycle: pushLifecycleEvent(lead, leadStatus, 'Scheduled via admin endpoint')
@@ -313,11 +498,11 @@ const createApp = () => {
     return res.json({ appointment, lead: updatedLead });
   });
 
-  app.post('/admin/test-drives/:appointmentId/confirm', (req, res) => {
+  app.post('/admin/test-drives/:appointmentId/confirm', async (req, res) => {
     const { appointmentId } = req.params;
     const { leadId } = req.body;
 
-    const appointment = updateAppointmentById(appointmentId, {
+    const appointment = await updateAppointmentById(appointmentId, {
       status: 'confirmed',
       confirmedAt: new Date().toISOString()
     });
@@ -328,9 +513,9 @@ const createApp = () => {
 
     let lead = null;
     if (leadId) {
-      const current = readJson(files.leads, []).find((item) => item.id === leadId);
+      const current = (await listLeads()).find((item) => item.id === leadId);
       if (current) {
-        lead = updateLeadById(leadId, {
+        lead = await updateLeadById(leadId, {
           status: 'contacted',
           lifecycle: pushLifecycleEvent(current, 'contacted', 'Appointment confirmed by staff')
         });
@@ -340,7 +525,7 @@ const createApp = () => {
     return res.json({ appointment, lead });
   });
 
-  app.post('/admin/leads/:leadId/callback-window', (req, res) => {
+  app.post('/admin/leads/:leadId/callback-window', async (req, res) => {
     const { leadId } = req.params;
     const { label, startHour, endHour } = req.body;
 
@@ -349,7 +534,7 @@ const createApp = () => {
       return res.status(400).json({ error: validation.errors.join(', ') });
     }
 
-    const current = readJson(files.leads, []).find((item) => item.id === leadId);
+    const current = (await listLeads()).find((item) => item.id === leadId);
     if (!current) {
       return res.status(404).json({ error: 'lead not found' });
     }
@@ -360,7 +545,7 @@ const createApp = () => {
       endHour: Number(endHour)
     };
 
-    const lead = updateLeadById(leadId, {
+    const lead = await updateLeadById(leadId, {
       callbackWindow,
       lifecycle: pushLifecycleEvent(current, current.status, `Callback window updated to ${label}`)
     });

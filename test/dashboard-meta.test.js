@@ -11,6 +11,11 @@ test('getDashboardLinks returns the expected local routes', () => {
   assert.equal(links.summary, 'http://localhost:3000/admin/summary');
   assert.equal(links.readiness, 'http://localhost:3000/admin/dashboard-readiness');
   assert.equal(links.overview, 'http://localhost:3000/admin/dashboard-overview');
+  assert.equal(links.productionReadiness, 'http://localhost:3000/admin/production-readiness');
+  assert.equal(links.demoReadiness, 'http://localhost:3000/admin/demo-readiness');
+  assert.equal(links.demoOverview, 'http://localhost:3000/admin/demo-overview');
+  assert.equal(links.demoScenarios, 'http://localhost:3000/admin/demo-scenarios');
+  assert.equal(links.launchChecklist, 'http://localhost:3000/admin/launch-checklist');
 });
 
 test('getDashboardStatus reports a base URL and build flag', () => {
