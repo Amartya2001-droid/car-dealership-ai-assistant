@@ -4,8 +4,8 @@
 - `Express API`: receives Twilio webhooks and simulation requests.
 - `Assistant Engine`: classifies topic, urgency, mood, and returns contextual response.
 - `Knowledge Base`: local JSON snapshot of inventory, hours, and promotions.
-- `Lead Store`: lead records and follow-up queue persisted in JSON.
-- `Appointment Store`: test-drive appointments persisted in JSON or mirrored to Google Calendar.
+- `Lead Store`: Supabase-first persistence with local JSON fallback.
+- `Appointment Store`: Supabase-first persistence plus Google Calendar provider sync when enabled.
 - `Showroom Asset Builder`: generates brochure and walkaround links for recommended inventory.
 - `Operations Dashboard`: static monitoring UI backed by existing admin endpoints.
 - `Dispatch Scheduler`: weekday cron job for next-morning digest and opt-in follow-up texts.
@@ -35,8 +35,8 @@
 - Virtual Showroom Mode: attaches brochure and walkaround links for best-match inventory.
 - Monitoring Dashboard: staff-facing board for summary metrics and recent operational activity.
 
-## Day 1-2 Constraints
-- Storage uses JSON files for speed.
-- Google Calendar connector currently expects an access token from environment.
-- CRM connector remains deferred to Day 3+.
+## Current Constraints
+- Supabase mode requires pre-created tables and valid anon key permissions.
+- Google Calendar connector expects an access token from environment.
+- CRM connector remains deferred.
 - Voice synthesis and transcription currently Twilio-driven.
