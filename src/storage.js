@@ -142,6 +142,7 @@ module.exports = {
   appendFollowUp: (followup) => appendRecord(files.followups, followup),
   appendAppointment: (appointment) => appendRecord(files.appointments, appointment),
   updateLeadById: (id, updates) => updateRecordById(files.leads, id, updates),
+  updateFollowUpById: (id, updates) => updateRecordById(files.followups, id, updates),
   updateAppointmentById: (id, updates) => updateRecordById(files.appointments, id, updates),
   summarizeLeads
 };
