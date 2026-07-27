@@ -24,8 +24,9 @@ const { getDashboardLinks, getDashboardStatus, getDashboardReadiness } = require
 const { buildDashboardOverview } = require('./dashboardOverview');
 const { buildProductionReadiness } = require('./productionReadiness');
 const { buildDemoReadiness } = require('./demoReadiness');
-const { listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
+const { getDemoScenario, listDemoScenarios, runDemoScenario, seedDemoData, resetDemoData } = require('./demoData');
 const { buildDemoOverview } = require('./demoOverview');
+const { buildDemoRunSheet } = require('./demoRunSheet');
 const { buildLaunchChecklist } = require('./launchChecklist');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
@@ -184,6 +185,7 @@ const createApp = () => {
       ready: 'npm run demo:ready',
       scenarioList: 'npm run demo:scenario',
       scenarioRunExample: 'npm run demo:scenario -- test-drive-booking',
+      runSheetExample: 'npm run demo:run-sheet -- test-drive-booking',
       launchChecklist: 'npm run launch:checklist',
       verifyProduction: 'npm run verify:production-url'
     };
@@ -191,6 +193,7 @@ const createApp = () => {
       demoReadiness: `${config.baseUrl}/admin/demo-readiness`,
       productionReadiness: `${config.baseUrl}/admin/production-readiness`,
       demoScenarios: `${config.baseUrl}/admin/demo-scenarios`,
+      demoRunSheetExample: `${config.baseUrl}/admin/demo/run-sheet/test-drive-booking`,
       launchChecklist: `${config.baseUrl}/admin/launch-checklist`,
       summary: `${config.baseUrl}/admin/summary`,
       dashboard: `${config.baseUrl}/dashboard`,
@@ -268,6 +271,31 @@ const createApp = () => {
 
   app.get('/admin/demo-scenarios', (_req, res) => {
     res.json({ scenarios: listDemoScenarios() });
+  });
+
+  app.get('/admin/demo/run-sheet/:scenarioId', (req, res) => {
+    const scenario = getDemoScenario(req.params.scenarioId);
+
+    if (!scenario) {
+      res.status(404).json({
+        error: 'Unknown demo scenario',
+        availableScenarios: listDemoScenarios().map((item) => item.id)
+      });
+      return;
+    }
+
+    res.json(
+      buildDemoRunSheet({
+        scenario,
+        baseUrl: config.baseUrl,
+        routes: {
+          scenarioRun: `${config.baseUrl}/admin/demo/scenarios/${scenario.id}/run`,
+          dashboard: `${config.baseUrl}/dashboard`,
+          demoOverview: `${config.baseUrl}/admin/demo-overview`,
+          summary: `${config.baseUrl}/admin/summary`
+        }
+      })
+    );
   });
 
   app.post('/admin/demo/reset', async (_req, res) => {
