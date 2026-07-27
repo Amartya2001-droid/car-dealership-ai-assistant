@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-04 (Launch Action Plan)
+- Added a dependency-based `nextActionPlan` to the launch checklist payload.
+- Split rollout actions into local tasks, credential-backed blockers, and verification gates.
+- Surfaced the action plan in the React operations dashboard.
+- Updated launch checklist tests and README guidance for the new operator view.
+
+## 2026-06-24 (Recorded Demo Run Sheet)
+- Added a reusable demo run-sheet builder for scenario-specific recording guidance.
+- Added `GET /admin/demo/run-sheet/:scenarioId` and `npm run demo:run-sheet -- <scenarioId>`.
+- Linked run-sheet discovery from the demo overview workflow and updated demo docs.
+- Added tests covering run-sheet commands, caller script, and proof points.
+
+## 2026-04-11 (Supabase Persistence)
+- Added `src/dataStore.js` with Supabase REST persistence for leads, follow-ups, and appointments.
+- Added automatic runtime fallback to local JSON persistence when Supabase is unavailable.
+- Migrated server/follow-up/scheduler flows to the shared async persistence adapter.
+- Updated environment docs with Supabase table schema and configurable table/column names.
+- Added persistence status tests for `local_fallback` and `remote_ready` modes.
+
 ## 2026-03-17 (Dashboard Ops Polish)
 - Added a manual dashboard refresh button and filtered lead totals.
 - Added showroom links in lead cards, appointment status badges, and callback tokens.

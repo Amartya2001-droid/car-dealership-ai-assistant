@@ -36,6 +36,21 @@ const DemoOperationsPanel = ({ demoOverview }) => {
   const routes = demoOverview?.routes || {};
   const launchChecklist = demoOverview?.launchChecklist || {};
   const nextSteps = readiness?.nextSteps || production?.nextSteps || [];
+  const immediateActions = launchChecklist.immediateActions || [];
+  const missingEnvKeys = launchChecklist.missingEnvKeys || [];
+  const phaseSummary = launchChecklist.phaseSummary || {};
+  const areaSummary = launchChecklist.areaSummary || {};
+  const gateSummary = launchChecklist.gateSummary || {};
+  const narrative = launchChecklist.narrative || {};
+  const unlockPlan = launchChecklist.unlockPlan || {};
+  const nextActionPlan = launchChecklist.nextActionPlan || {};
+
+  const narrativeToneClass = {
+    ready: 'border-emerald-300 bg-emerald-50 text-emerald-900',
+    pilot: 'border-sky-300 bg-sky-50 text-sky-900',
+    demo: 'border-amber-300 bg-amber-50 text-amber-900',
+    blocked: 'border-red-300 bg-red-50 text-red-900'
+  }[narrative.statusTone || 'blocked'];
 
   return (
     <Card className="shadow-lg border-stone-200" data-testid="demo-operations-panel">
@@ -49,6 +64,17 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {narrative.headline && (
+          <div className={`rounded-xl border p-4 ${narrativeToneClass}`}>
+            <div className="text-sm font-semibold">{narrative.headline}</div>
+            {narrative.nextMilestone && (
+              <div className="mt-1 text-sm opacity-90">
+                Next milestone: {narrative.nextMilestone}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
             <div className="mb-2 flex items-center justify-between gap-2">
@@ -105,7 +131,243 @@ const DemoOperationsPanel = ({ demoOverview }) => {
             </div>
             <p className="mt-2 text-xs text-stone-500">Tracks whether next week’s supervised pilot path is realistic.</p>
           </div>
+          <div className="rounded-xl border border-stone-200 bg-white p-4 sm:col-span-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Completion score</div>
+            <div className="mt-2 flex items-end gap-3">
+              <div className="text-3xl font-bold text-stone-900">{launchChecklist.completionScore || 0}%</div>
+              <div className="text-xs text-stone-500">Based on dashboard, data, env, AI, and telephony readiness.</div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-500 transition-all"
+                style={{ width: `${launchChecklist.completionScore || 0}%` }}
+              />
+            </div>
+          </div>
         </div>
+
+        {Object.keys(phaseSummary).length > 0 && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              ['today', 'Today'],
+              ['beforeDemo', 'Before Demo'],
+              ['thisWeek', 'This Week'],
+              ['beforePilot', 'Before Pilot']
+            ].map(([key, label]) => (
+              <div key={key} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</div>
+                <div className="mt-2 text-2xl font-bold text-stone-900">{phaseSummary[key]?.blocked || 0}</div>
+                <div className="mt-1 text-xs text-stone-500">
+                  blocked • {phaseSummary[key]?.warnings || 0} warning{phaseSummary[key]?.warnings === 1 ? '' : 's'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {Object.keys(areaSummary).length > 0 && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-800">Workstream breakdown</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {Object.entries(areaSummary).map(([key, value]) => (
+                <div key={key} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{key}</div>
+                  <div className="mt-2 text-2xl font-bold text-stone-900">{value.blocked}</div>
+                  <div className="mt-1 text-xs text-stone-500">
+                    blocked • {value.warnings} warning{value.warnings === 1 ? '' : 's'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {Object.keys(gateSummary).length > 0 && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-800">Go / no-go gates</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                ['demo', 'Demo'],
+                ['pilot', 'Pilot'],
+                ['production', 'Production']
+              ].map(([key, label]) => (
+                <div key={key} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</div>
+                  <div className="mt-2 text-2xl font-bold text-stone-900">
+                    {gateSummary[key]?.passed || 0}/{gateSummary[key]?.total || 0}
+                  </div>
+                  <div className="mt-1 text-xs text-stone-500">gates currently passing</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(unlockPlan.steps || []).length > 0 && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="mb-1 text-sm font-semibold text-stone-800">Recommended unlock sequence</div>
+            {unlockPlan.headline && (
+              <div className="mb-4 text-sm text-stone-600">{unlockPlan.headline}</div>
+            )}
+            <div className="space-y-3">
+              {unlockPlan.steps.map((item, index) => (
+                <div key={item.id} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-xs font-semibold text-white">
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="font-medium text-stone-900">{item.title}</div>
+                        <Badge className="border-stone-300 bg-white text-stone-700">{item.phase}</Badge>
+                      </div>
+                      <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                      <div className="mt-2 text-xs text-stone-500">Unlocks: {item.unlocks}</div>
+                      <div className="mt-1 text-xs text-stone-500">Why now: {item.whyNow}</div>
+                      {item.command && (
+                        <div className="mt-2 rounded-md bg-white px-3 py-2 font-mono text-xs text-stone-600">
+                          {item.command}
+                        </div>
+                      )}
+                    </div>
+                    {item.route && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 border-stone-300 text-stone-700"
+                        onClick={() => openUrl(item.route)}
+                      >
+                        Open
+                        <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {nextActionPlan.headline && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="mb-1 text-sm font-semibold text-stone-800">Action plan by dependency</div>
+            <div className="mb-4 text-sm text-stone-600">{nextActionPlan.headline}</div>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Can do now</div>
+                <div className="mt-3 space-y-3">
+                  {(nextActionPlan.canDoNow || []).length === 0 && (
+                    <div className="text-sm text-stone-500">No local blockers remain.</div>
+                  )}
+                  {(nextActionPlan.canDoNow || []).map((item) => (
+                    <div key={item.id} className="rounded-md border border-stone-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-stone-900">{item.title}</div>
+                          <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                          {item.command && (
+                            <div className="mt-2 rounded-md bg-stone-50 px-3 py-2 font-mono text-xs text-stone-600">
+                              {item.command}
+                            </div>
+                          )}
+                        </div>
+                        {item.route && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0 border-stone-300 text-stone-700"
+                            onClick={() => openUrl(item.route)}
+                          >
+                            Open
+                            <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Needs credentials</div>
+                <div className="mt-3 space-y-3">
+                  {(nextActionPlan.needsCredentials || []).length === 0 && (
+                    <div className="text-sm text-stone-500">No credential blockers remain.</div>
+                  )}
+                  {(nextActionPlan.needsCredentials || []).map((item) => (
+                    <div key={item.id} className="rounded-md border border-stone-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-stone-900">{item.title}</div>
+                          <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                          {(item.missingKeys || []).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {item.missingKeys.map((key) => (
+                                <Badge key={key} variant="outline" className="border-stone-300 bg-white text-stone-700">
+                                  {key}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {item.route && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0 border-stone-300 text-stone-700"
+                            onClick={() => openUrl(item.route)}
+                          >
+                            Open
+                            <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Verify next</div>
+                <div className="mt-3 space-y-3">
+                  {(nextActionPlan.verification || []).length === 0 && (
+                    <div className="text-sm text-stone-500">All checklist gates are passing.</div>
+                  )}
+                  {(nextActionPlan.verification || []).map((item) => (
+                    <div key={`${item.stage}-${item.label}`} className="rounded-md border border-stone-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-stone-900">{item.label}</div>
+                          <div className="mt-1 text-sm capitalize text-stone-600">{item.stage} gate</div>
+                          {item.command && (
+                            <div className="mt-2 rounded-md bg-stone-50 px-3 py-2 font-mono text-xs text-stone-600">
+                              {item.command}
+                            </div>
+                          )}
+                        </div>
+                        {item.route && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0 border-stone-300 text-stone-700"
+                            onClick={() => openUrl(item.route)}
+                          >
+                            Open
+                            <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-stone-200 bg-white p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-stone-800">
@@ -165,6 +427,41 @@ const DemoOperationsPanel = ({ demoOverview }) => {
             </ul>
           </div>
         </div>
+
+        {immediateActions.length > 0 && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-800">Top actions for this week</div>
+            <div className="space-y-3">
+              {immediateActions.map((item) => (
+                <div key={item.id} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-medium text-stone-900">{item.title}</div>
+                    <Badge className="border-stone-300 bg-white text-stone-700">{item.phase}</Badge>
+                  </div>
+                  <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                  {item.command && (
+                    <div className="mt-2 rounded-md bg-white px-3 py-2 font-mono text-xs text-stone-600">
+                      {item.command}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {missingEnvKeys.length > 0 && (
+          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-800">Missing production env keys</div>
+            <div className="flex flex-wrap gap-2">
+              {missingEnvKeys.map((item) => (
+                <Badge key={item} variant="outline" className="border-stone-300 bg-white text-stone-700">
+                  {item}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(launchChecklist.blockers || []).length > 0 && (
           <div className="rounded-xl border border-stone-200 bg-white p-4">

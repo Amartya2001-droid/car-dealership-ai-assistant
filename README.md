@@ -143,11 +143,17 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
    ```
    This combines readiness, production status, named scenarios, suggested commands, routes, and a recording flow checklist. The same payload is available at `GET /admin/demo-overview`.
 
-21. Optional launch checklist snapshot:
+21. Optional recorded demo run sheet:
+   ```bash
+   npm run demo:run-sheet -- test-drive-booking
+   ```
+   This prints a scenario-specific presenter script, caller lines, proof points, dashboard routes, and the exact command to run during the recording. The same payload is available at `GET /admin/demo/run-sheet/:scenarioId`.
+
+22. Optional launch checklist snapshot:
    ```bash
    npm run launch:checklist
    ```
-   This focuses on next-week rollout blockers, warnings, pilot status, and the commands/routes needed to clear them. The same payload is available at `GET /admin/launch-checklist`.
+   This focuses on next-week rollout blockers, warnings, pilot status, missing production env keys, immediate actions, phase summaries, dependency-based next actions, and a simple completion score. The same payload is available at `GET /admin/launch-checklist`.
 
 ## Daily GitHub Contribution Flow
 Run this once per day (or let automation run it) to guarantee a contribution commit:
@@ -190,6 +196,7 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /admin/demo-readiness`
 - `GET /admin/demo-overview`
 - `GET /admin/demo-scenarios`
+- `GET /admin/demo/run-sheet/:scenarioId`
 - `GET /admin/launch-checklist`
 - `POST /admin/demo/reset`
 - `POST /admin/demo/seed`
@@ -233,7 +240,9 @@ For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboa
 For one combined payload covering route selection and build availability, use `GET /admin/dashboard-readiness` or `npm run dashboard:status`.
 For one combined payload covering summary, runtime, health, and readiness, use `GET /admin/dashboard-overview` or `npm run dashboard:overview`.
 For demo-operator control and walkthrough prep, use `GET /admin/demo-overview` or `npm run demo:overview`.
+For the final recorded walkthrough, use `GET /admin/demo/run-sheet/test-drive-booking` or `npm run demo:run-sheet -- test-drive-booking`.
 For a go-live blocker list tied to next week’s rollout, use `GET /admin/launch-checklist` or `npm run launch:checklist`.
+The launch checklist now groups blockers into `today`, `beforeDemo`, `thisWeek`, and `beforePilot`, and surfaces the top immediate actions, dependency-based next-action plan, phase summaries, completion score, workstream breakdown, and a short rollout narrative directly in the operator dashboard.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
 

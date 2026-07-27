@@ -20,3 +20,15 @@
 - Check `GET /admin/dashboard-links` to confirm the expected preview URLs.
 - Run `npm run dashboard:refresh` to rebuild the bundle and verify the backend-served route.
 - If the React bundle build hangs, `npm run dashboard:refresh` now writes a fallback `frontend/build/index.html` that redirects `/ops-dashboard/` to the built-in `/dashboard` route.
+
+## Local Git Commands Hang
+
+If `git status`, `git add`, or `git commit` hangs locally:
+
+- Run `npm run git:health` to check for stale Git processes, `.git/index.lock`, and large generated folders that are not ignored.
+- Stop only stale Git processes after confirming no active commit/push is expected.
+- Remove `.git/index.lock` only after confirming no Git process is running.
+- Avoid broad `git add -A` when large local toolchains or generated folders may exist.
+- Prefer explicit file staging for production changes until the local repo is healthy again.
+
+The repository ignores local dependency/toolchain folders such as `node_modules`, `frontend/node_modules`, `.miniforge`, `.venv`, and `.cache` so they do not get scanned or staged accidentally.
