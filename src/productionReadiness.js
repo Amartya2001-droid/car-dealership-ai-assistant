@@ -1,6 +1,7 @@
 const config = require('./config');
 const { getPersistenceStatus } = require('./persistence');
 const { getDashboardReadiness } = require('./dashboardMeta');
+const { getTwilioWebhookSecurityStatus } = require('./twilioSecurity');
 
 const REQUIRED_BASE = ['DEALERSHIP_NAME', 'DEFAULT_PERSONA', 'STORAGE_PROVIDER', 'BASE_URL'];
 const REQUIRED_TWILIO = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER'];
@@ -13,6 +14,7 @@ const hasAny = (names, values) => names.some((name) => values.includes(name));
 const getIntegrationStatus = () => ({
   openai: config.useMockAi ? 'mock' : config.openaiApiKey ? 'configured' : 'missing',
   twilio: config.twilio.accountSid && config.twilio.authToken && config.twilio.phoneNumber ? 'configured' : 'missing',
+  twilioWebhookSecurity: getTwilioWebhookSecurityStatus(),
   googleCalendar: config.googleCalendar.calendarId && config.googleCalendar.accessToken ? 'configured' : 'disabled'
 });
 
@@ -63,6 +65,12 @@ const buildProductionReadiness = ({ env = process.env, baseUrl = config.baseUrl 
 
   if (config.storageProvider !== 'supabase') {
     warnings.push('STORAGE_PROVIDER is not supabase; production data will use local fallback storage.');
+  }
+
+  if (config.twilio.authToken && !config.validateTwilioWebhooks) {
+    warnings.push(
+      'TWILIO_VALIDATE_WEBHOOKS is disabled; incoming voice webhooks will not verify Twilio signatures.'
+    );
   }
 
   const storage = getPersistenceStatus();

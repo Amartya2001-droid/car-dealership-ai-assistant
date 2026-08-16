@@ -28,6 +28,7 @@ module.exports = {
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     phoneNumber: process.env.TWILIO_PHONE_NUMBER || ''
   },
+  validateTwilioWebhooks: resolveBoolean(process.env.TWILIO_VALIDATE_WEBHOOKS, true),
   googleCalendar: {
     calendarId: process.env.GOOGLE_CALENDAR_ID || '',
     accessToken: process.env.GOOGLE_ACCESS_TOKEN || ''

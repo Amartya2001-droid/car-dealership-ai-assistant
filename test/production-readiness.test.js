@@ -12,7 +12,8 @@ const ENV_KEYS = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'USE_MOCK_AI',
-  'OPENAI_API_KEY'
+  'OPENAI_API_KEY',
+  'TWILIO_VALIDATE_WEBHOOKS'
 ];
 
 const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
@@ -20,6 +21,7 @@ const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[k
 const clearModules = () => {
   for (const file of [
     '../src/productionReadiness',
+    '../src/twilioSecurity',
     '../src/dashboardMeta',
     '../src/persistence',
     '../src/dataStore',
@@ -88,7 +90,24 @@ test('production readiness passes when required providers are configured', () =>
   assert.equal(readiness.ok, true);
   assert.equal(readiness.integrations.openai, 'configured');
   assert.equal(readiness.integrations.twilio, 'configured');
+  assert.equal(readiness.integrations.twilioWebhookSecurity, 'enforced');
   assert.equal(readiness.storage.activeProvider, 'supabase');
   assert.equal(readiness.missingProduction.length, 0);
   assert.ok(readiness.nextSteps.some((step) => step.includes('verify:production-url')));
+});
+
+test('production readiness warns when Twilio webhook validation is disabled', () => {
+  setEnv({
+    TWILIO_ACCOUNT_SID: 'AC123',
+    TWILIO_AUTH_TOKEN: 'token',
+    TWILIO_PHONE_NUMBER: '+19025550199',
+    TWILIO_VALIDATE_WEBHOOKS: 'false'
+  });
+  clearModules();
+
+  const { buildProductionReadiness } = require('../src/productionReadiness');
+  const readiness = buildProductionReadiness({ env: process.env, baseUrl: 'http://localhost:3000' });
+
+  assert.equal(readiness.integrations.twilioWebhookSecurity, 'disabled');
+  assert.ok(readiness.warnings.some((warning) => warning.includes('TWILIO_VALIDATE_WEBHOOKS')));
 });

@@ -28,6 +28,7 @@ const { getDemoScenario, listDemoScenarios, runDemoScenario, seedDemoData, reset
 const { buildDemoOverview } = require('./demoOverview');
 const { buildDemoRunSheet } = require('./demoRunSheet');
 const { buildLaunchChecklist } = require('./launchChecklist');
+const { createTwilioWebhookGuard } = require('./twilioSecurity');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -344,7 +345,9 @@ const createApp = () => {
     });
   });
 
-  app.post('/webhooks/twilio/voice', (req, res) => {
+  const twilioWebhookGuard = createTwilioWebhookGuard();
+
+  app.post('/webhooks/twilio/voice', twilioWebhookGuard, (req, res) => {
     const voiceResponse = new twilio.twiml.VoiceResponse();
     const gather = voiceResponse.gather({
       input: 'speech',
@@ -361,7 +364,7 @@ const createApp = () => {
     res.type('text/xml').send(voiceResponse.toString());
   });
 
-  app.post('/webhooks/twilio/voice/collect', async (req, res) => {
+  app.post('/webhooks/twilio/voice/collect', twilioWebhookGuard, async (req, res) => {
     const speechResult = req.body.SpeechResult || 'No speech captured.';
     const phone = req.body.From || 'unknown';
     const callerName = req.body.CallerName || null;
