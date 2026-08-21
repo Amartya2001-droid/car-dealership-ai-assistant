@@ -34,6 +34,7 @@ const { parseAllowedOrigins, buildCorsOptions } = require('./corsPolicy');
 const { createSecurityHeaders } = require('./securityHeaders');
 const { createRateLimiter } = require('./rateLimiter');
 const { createAdminAuthGuard } = require('./adminAuth');
+const { registerGracefulShutdown } = require('./gracefulShutdown');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -611,6 +612,8 @@ const startServer = () => {
     console.log(`Server running on port ${config.port}`);
     console.log(`Morning follow-up schedule: ${schedule} (${config.dealershipTimezone})`);
   });
+
+  registerGracefulShutdown({ server });
 
   return { app, server };
 };
