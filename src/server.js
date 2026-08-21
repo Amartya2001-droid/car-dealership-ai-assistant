@@ -31,6 +31,7 @@ const { buildLaunchChecklist } = require('./launchChecklist');
 const { createTwilioWebhookGuard } = require('./twilioSecurity');
 const { createNotFoundHandler, createErrorHandler } = require('./errorHandling');
 const { parseAllowedOrigins, buildCorsOptions } = require('./corsPolicy');
+const { createSecurityHeaders } = require('./securityHeaders');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -43,6 +44,7 @@ const createApp = () => {
   const app = express();
 
   app.use(cors(buildCorsOptions(parseAllowedOrigins(config.allowedOrigins))));
+  app.use(createSecurityHeaders());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use('/dashboard-assets', express.static(path.join(__dirname, '..', 'public')));
