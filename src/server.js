@@ -35,6 +35,7 @@ const { createSecurityHeaders } = require('./securityHeaders');
 const { createRateLimiter } = require('./rateLimiter');
 const { createAdminAuthGuard } = require('./adminAuth');
 const { registerGracefulShutdown } = require('./gracefulShutdown');
+const { createRequestLogger } = require('./requestLogger');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -47,6 +48,7 @@ const createApp = () => {
   const app = express();
   const adminAuthGuard = createAdminAuthGuard();
 
+  app.use(createRequestLogger());
   app.use(cors(buildCorsOptions(parseAllowedOrigins(config.allowedOrigins))));
   app.use(createSecurityHeaders());
   app.use(express.urlencoded({ extended: true }));
