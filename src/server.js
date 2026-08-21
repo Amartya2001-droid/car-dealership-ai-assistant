@@ -29,6 +29,7 @@ const { buildDemoOverview } = require('./demoOverview');
 const { buildDemoRunSheet } = require('./demoRunSheet');
 const { buildLaunchChecklist } = require('./launchChecklist');
 const { createTwilioWebhookGuard } = require('./twilioSecurity');
+const { createNotFoundHandler, createErrorHandler } = require('./errorHandling');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -588,6 +589,9 @@ const createApp = () => {
     const result = await runMorningDispatch();
     res.json(result);
   });
+
+  app.use(createNotFoundHandler());
+  app.use(createErrorHandler());
 
   return app;
 };
