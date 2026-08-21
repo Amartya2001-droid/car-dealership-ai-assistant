@@ -41,5 +41,9 @@ module.exports = {
   useMockAi: resolveBoolean(process.env.USE_MOCK_AI, true),
   exposeErrorDetails: resolveBoolean(process.env.EXPOSE_ERROR_DETAILS, process.env.NODE_ENV !== 'production'),
   allowedOrigins: process.env.ALLOWED_ORIGINS || '',
+  rateLimit: {
+    windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
+    max: Number(process.env.RATE_LIMIT_MAX || 20)
+  },
   dataDir: process.env.DATA_DIR || path.join(process.cwd(), 'data')
 };

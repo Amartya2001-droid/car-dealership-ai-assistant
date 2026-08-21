@@ -32,6 +32,7 @@ const { createTwilioWebhookGuard } = require('./twilioSecurity');
 const { createNotFoundHandler, createErrorHandler } = require('./errorHandling');
 const { parseAllowedOrigins, buildCorsOptions } = require('./corsPolicy');
 const { createSecurityHeaders } = require('./securityHeaders');
+const { createRateLimiter } = require('./rateLimiter');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -419,7 +420,9 @@ const createApp = () => {
     res.type('text/xml').send(twiml.toString());
   });
 
-  app.post('/simulate/call', async (req, res) => {
+  const simulateCallRateLimiter = createRateLimiter();
+
+  app.post('/simulate/call', simulateCallRateLimiter, async (req, res) => {
     const { phone, callerName, message, persona = config.defaultPersona, optInFollowUp = true } = req.body;
 
     const validation = validateSimulatedCall({ phone, message, persona });
