@@ -2,11 +2,13 @@ const config = require('./config');
 const { getPersistenceStatus } = require('./persistence');
 const { getDashboardReadiness } = require('./dashboardMeta');
 const { getTwilioWebhookSecurityStatus } = require('./twilioSecurity');
+const { getAdminAuthStatus } = require('./adminAuth');
 
 const REQUIRED_BASE = ['DEALERSHIP_NAME', 'DEFAULT_PERSONA', 'STORAGE_PROVIDER', 'BASE_URL'];
 const REQUIRED_TWILIO = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER'];
 const REQUIRED_SUPABASE = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
 const REQUIRED_OPENAI = ['OPENAI_API_KEY'];
+const REQUIRED_ADMIN = ['ADMIN_API_KEY'];
 
 const missingFromEnv = (names, env) => names.filter((name) => !env[name]);
 const hasAny = (names, values) => names.some((name) => values.includes(name));
@@ -15,6 +17,7 @@ const getIntegrationStatus = () => ({
   openai: config.useMockAi ? 'mock' : config.openaiApiKey ? 'configured' : 'missing',
   twilio: config.twilio.accountSid && config.twilio.authToken && config.twilio.phoneNumber ? 'configured' : 'missing',
   twilioWebhookSecurity: getTwilioWebhookSecurityStatus(),
+  adminAuth: getAdminAuthStatus(),
   googleCalendar: config.googleCalendar.calendarId && config.googleCalendar.accessToken ? 'configured' : 'disabled'
 });
 
@@ -39,6 +42,12 @@ const buildNextSteps = ({ missingProduction, storage, dashboard, integrations })
     nextSteps.push('Add Twilio credentials and point the phone number webhook to /webhooks/twilio/voice.');
   }
 
+  if (hasAny(REQUIRED_ADMIN, missingProduction)) {
+    nextSteps.push(
+      'Set ADMIN_API_KEY to require authentication on lead, appointment, and follow-up admin routes.'
+    );
+  }
+
   if (!dashboard.ready) {
     nextSteps.push('Rebuild the dashboard bundle so /ops-dashboard/ is available on the deployed service.');
   }
@@ -52,7 +61,8 @@ const buildProductionReadiness = ({ env = process.env, baseUrl = config.baseUrl 
   const missingProduction = [
     ...missingFromEnv(REQUIRED_BASE, env),
     ...missingFromEnv(REQUIRED_TWILIO, env),
-    ...missingFromEnv(REQUIRED_SUPABASE, env)
+    ...missingFromEnv(REQUIRED_SUPABASE, env),
+    ...missingFromEnv(REQUIRED_ADMIN, env)
   ];
 
   const warnings = [];
@@ -99,5 +109,6 @@ module.exports = {
   REQUIRED_BASE,
   REQUIRED_TWILIO,
   REQUIRED_SUPABASE,
-  REQUIRED_OPENAI
+  REQUIRED_OPENAI,
+  REQUIRED_ADMIN
 };

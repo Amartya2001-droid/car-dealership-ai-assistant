@@ -17,6 +17,24 @@ let dashboardState = {
   loading: false
 };
 
+// When ADMIN_API_KEY is set on the backend, gated /admin/* routes require it.
+// This static page has no login flow, so operators pass it via
+// /dashboard?api_key=... and we forward it as a header on every request and
+// onto the raw-JSON jump links below.
+const adminApiKey = new URLSearchParams(window.location.search).get('api_key') || '';
+
+const adminFetch = (path) =>
+  fetch(path, adminApiKey ? { headers: { 'x-admin-api-key': adminApiKey } } : undefined);
+
+const applyAdminKeyToJumpLinks = () => {
+  if (!adminApiKey) return;
+  document.querySelectorAll('.link-grid a[data-admin-gated]').forEach((link) => {
+    const url = new URL(link.getAttribute('href'), window.location.origin);
+    url.searchParams.set('api_key', adminApiKey);
+    link.setAttribute('href', `${url.pathname}${url.search}`);
+  });
+};
+
 const setCount = (id, text) => {
   const element = document.getElementById(id);
   if (element) element.textContent = text;
@@ -159,12 +177,19 @@ const loadDashboard = async () => {
     refreshButtonEl.textContent = 'Refreshing...';
     refreshButtonEl.disabled = true;
     const [summaryRes, leadsRes, appointmentsRes, followupsRes, runtimeRes] = await Promise.all([
-      fetch('/admin/summary'),
-      fetch('/admin/leads'),
-      fetch('/admin/appointments'),
-      fetch('/admin/followups'),
-      fetch('/admin/runtime')
+      adminFetch('/admin/summary'),
+      adminFetch('/admin/leads'),
+      adminFetch('/admin/appointments'),
+      adminFetch('/admin/followups'),
+      adminFetch('/admin/runtime')
     ]);
+
+    const unauthorized = [leadsRes, appointmentsRes, followupsRes].some((res) => res.status === 401);
+    if (unauthorized) {
+      throw new Error(
+        'Admin key required. Open this page as /dashboard?api_key=YOUR_ADMIN_API_KEY.'
+      );
+    }
 
     const [summary, leads, appointments, followups, runtime] = await Promise.all([
       summaryRes.json(),
@@ -265,6 +290,7 @@ const loadDashboard = async () => {
   }
 };
 
+applyAdminKeyToJumpLinks();
 loadDashboard();
 setInterval(loadDashboard, 30000);
 

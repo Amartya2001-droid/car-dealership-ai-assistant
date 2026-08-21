@@ -18,7 +18,12 @@ import {
 } from 'lucide-react';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+const ADMIN_API_KEY = process.env.REACT_APP_ADMIN_API_KEY || '';
 const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
+// Plain <a> links can't set a custom header, so gated routes carry the key
+// as a query param instead. Only used for the raw-JSON admin links below.
+const buildAdminApiUrl = (path) =>
+  ADMIN_API_KEY ? `${buildApiUrl(path)}?api_key=${encodeURIComponent(ADMIN_API_KEY)}` : buildApiUrl(path);
 
 const QuickLinksPanel = () => {
   const links = [
@@ -108,19 +113,19 @@ const QuickLinksPanel = () => {
     },
     {
       label: 'All Leads',
-      url: buildApiUrl('/admin/leads'),
+      url: buildAdminApiUrl('/admin/leads'),
       icon: <Users className="h-4 w-4" />,
       color: 'text-amber-600'
     },
     {
       label: 'All Appointments',
-      url: buildApiUrl('/admin/appointments'),
+      url: buildAdminApiUrl('/admin/appointments'),
       icon: <Calendar className="h-4 w-4" />,
       color: 'text-green-600'
     },
     {
       label: 'All Follow-ups',
-      url: buildApiUrl('/admin/followups'),
+      url: buildAdminApiUrl('/admin/followups'),
       icon: <Clock className="h-4 w-4" />,
       color: 'text-orange-600'
     }

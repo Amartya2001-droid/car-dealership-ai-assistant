@@ -33,6 +33,7 @@ const { createNotFoundHandler, createErrorHandler } = require('./errorHandling')
 const { parseAllowedOrigins, buildCorsOptions } = require('./corsPolicy');
 const { createSecurityHeaders } = require('./securityHeaders');
 const { createRateLimiter } = require('./rateLimiter');
+const { createAdminAuthGuard } = require('./adminAuth');
 
 const reactDashboardBuildDir = path.join(__dirname, '..', 'frontend', 'build');
 
@@ -43,6 +44,7 @@ const pushLifecycleEvent = (lead, status, note) => {
 
 const createApp = () => {
   const app = express();
+  const adminAuthGuard = createAdminAuthGuard();
 
   app.use(cors(buildCorsOptions(parseAllowedOrigins(config.allowedOrigins))));
   app.use(createSecurityHeaders());
@@ -304,17 +306,17 @@ const createApp = () => {
     );
   });
 
-  app.post('/admin/demo/reset', async (_req, res) => {
+  app.post('/admin/demo/reset', adminAuthGuard, async (_req, res) => {
     const result = await resetDemoData();
     res.json(result);
   });
 
-  app.post('/admin/demo/seed', async (req, res) => {
+  app.post('/admin/demo/seed', adminAuthGuard, async (req, res) => {
     const result = await seedDemoData({ reset: Boolean(req.body?.reset) });
     res.json(result);
   });
 
-  app.post('/admin/demo/scenarios/:scenarioId/run', async (req, res) => {
+  app.post('/admin/demo/scenarios/:scenarioId/run', adminAuthGuard, async (req, res) => {
     const result = await runDemoScenario(req.params.scenarioId, {
       assistantReply: req.body?.assistantReply
     });
@@ -473,20 +475,20 @@ const createApp = () => {
     });
   });
 
-  app.post('/admin/knowledge/snapshot', (req, res) => {
+  app.post('/admin/knowledge/snapshot', adminAuthGuard, (req, res) => {
     const updated = updateKnowledgeBaseFromSnapshot(req.body || {});
     res.json({ updated });
   });
 
-  app.get('/admin/leads', async (_req, res) => {
+  app.get('/admin/leads', adminAuthGuard, async (_req, res) => {
     res.json({ leads: await listLeads() });
   });
 
-  app.get('/admin/followups', async (_req, res) => {
+  app.get('/admin/followups', adminAuthGuard, async (_req, res) => {
     res.json({ followups: await listFollowUps() });
   });
 
-  app.get('/admin/appointments', async (_req, res) => {
+  app.get('/admin/appointments', adminAuthGuard, async (_req, res) => {
     res.json({ appointments: await listAppointments() });
   });
 
@@ -512,7 +514,7 @@ const createApp = () => {
     });
   });
 
-  app.post('/admin/test-drives/schedule', async (req, res) => {
+  app.post('/admin/test-drives/schedule', adminAuthGuard, async (req, res) => {
     const { leadId } = req.body;
     if (!leadId) {
       return res.status(400).json({ error: 'leadId is required' });
@@ -536,7 +538,7 @@ const createApp = () => {
     return res.json({ appointment, lead: updatedLead });
   });
 
-  app.post('/admin/test-drives/:appointmentId/confirm', async (req, res) => {
+  app.post('/admin/test-drives/:appointmentId/confirm', adminAuthGuard, async (req, res) => {
     const { appointmentId } = req.params;
     const { leadId } = req.body;
 
@@ -563,7 +565,7 @@ const createApp = () => {
     return res.json({ appointment, lead });
   });
 
-  app.post('/admin/leads/:leadId/callback-window', async (req, res) => {
+  app.post('/admin/leads/:leadId/callback-window', adminAuthGuard, async (req, res) => {
     const { leadId } = req.params;
     const { label, startHour, endHour } = req.body;
 
@@ -591,7 +593,7 @@ const createApp = () => {
     return res.json({ lead });
   });
 
-  app.post('/admin/run-followups', async (_req, res) => {
+  app.post('/admin/run-followups', adminAuthGuard, async (_req, res) => {
     const result = await runMorningDispatch();
     res.json(result);
   });

@@ -45,5 +45,6 @@ module.exports = {
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
     max: Number(process.env.RATE_LIMIT_MAX || 20)
   },
+  adminApiKey: process.env.ADMIN_API_KEY || '',
   dataDir: process.env.DATA_DIR || path.join(process.cwd(), 'data')
 };

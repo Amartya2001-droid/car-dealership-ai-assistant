@@ -13,7 +13,8 @@ const ENV_KEYS = [
   'SUPABASE_ANON_KEY',
   'USE_MOCK_AI',
   'OPENAI_API_KEY',
-  'TWILIO_VALIDATE_WEBHOOKS'
+  'TWILIO_VALIDATE_WEBHOOKS',
+  'ADMIN_API_KEY'
 ];
 
 const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
@@ -22,6 +23,7 @@ const clearModules = () => {
   for (const file of [
     '../src/productionReadiness',
     '../src/twilioSecurity',
+    '../src/adminAuth',
     '../src/dashboardMeta',
     '../src/persistence',
     '../src/dataStore',
@@ -79,7 +81,8 @@ test('production readiness passes when required providers are configured', () =>
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_ANON_KEY: 'anon',
     USE_MOCK_AI: 'false',
-    OPENAI_API_KEY: 'sk-test'
+    OPENAI_API_KEY: 'sk-test',
+    ADMIN_API_KEY: 'super-secret-admin-key'
   });
   clearModules();
 
@@ -91,9 +94,22 @@ test('production readiness passes when required providers are configured', () =>
   assert.equal(readiness.integrations.openai, 'configured');
   assert.equal(readiness.integrations.twilio, 'configured');
   assert.equal(readiness.integrations.twilioWebhookSecurity, 'enforced');
+  assert.equal(readiness.integrations.adminAuth, 'enforced');
   assert.equal(readiness.storage.activeProvider, 'supabase');
   assert.equal(readiness.missingProduction.length, 0);
   assert.ok(readiness.nextSteps.some((step) => step.includes('verify:production-url')));
+});
+
+test('production readiness flags missing ADMIN_API_KEY as a production blocker', () => {
+  setEnv({});
+  clearModules();
+
+  const { buildProductionReadiness } = require('../src/productionReadiness');
+  const readiness = buildProductionReadiness({ env: process.env, baseUrl: 'http://localhost:3000' });
+
+  assert.equal(readiness.integrations.adminAuth, 'unconfigured');
+  assert.ok(readiness.missingProduction.includes('ADMIN_API_KEY'));
+  assert.ok(readiness.nextSteps.some((step) => step.includes('ADMIN_API_KEY')));
 });
 
 test('production readiness warns when Twilio webhook validation is disabled', () => {

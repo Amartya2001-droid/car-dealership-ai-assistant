@@ -26,9 +26,11 @@ import ErrorState from './ErrorState';
 import DemoOperationsPanel from './DemoOperationsPanel';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+const ADMIN_API_KEY = process.env.REACT_APP_ADMIN_API_KEY || '';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
-const apiGet = (path) => axios.get(`${API_BASE_URL}${path}`);
+const apiGet = (path) =>
+  axios.get(`${API_BASE_URL}${path}`, ADMIN_API_KEY ? { headers: { 'x-admin-api-key': ADMIN_API_KEY } } : undefined);
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
