@@ -40,5 +40,6 @@ module.exports = {
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   useMockAi: resolveBoolean(process.env.USE_MOCK_AI, true),
   exposeErrorDetails: resolveBoolean(process.env.EXPOSE_ERROR_DETAILS, process.env.NODE_ENV !== 'production'),
+  allowedOrigins: process.env.ALLOWED_ORIGINS || '',
   dataDir: process.env.DATA_DIR || path.join(process.cwd(), 'data')
 };
