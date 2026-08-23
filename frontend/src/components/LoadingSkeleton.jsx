@@ -4,9 +4,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const LoadingSkeleton = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/20 to-stone-100">
+    <div className="min-h-screen bg-background">
       {/* Header Skeleton */}
-      <div className="bg-gradient-to-r from-stone-900 via-stone-800 to-amber-900 text-white shadow-xl">
+      <div className="bg-header text-header-foreground shadow-xl">
         <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -56,7 +56,7 @@ const LoadingSkeleton = () => {
               <CardContent>
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 border-2 border-stone-200 rounded-lg">
+                    <div key={i} className="p-4 border border-border rounded-lg">
                       <Skeleton className="h-5 w-40 mb-2" />
                       <Skeleton className="h-4 w-full mb-3" />
                       <div className="flex gap-2">
@@ -80,7 +80,7 @@ const LoadingSkeleton = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {[1, 2].map((j) => (
-                      <div key={j} className="p-3 border border-stone-200 rounded-lg">
+                      <div key={j} className="p-3 border border-border rounded-lg">
                         <Skeleton className="h-4 w-24 mb-2" />
                         <Skeleton className="h-3 w-full" />
                       </div>
