@@ -4,6 +4,7 @@ const timezone = require('dayjs/plugin/timezone');
 
 const config = require('./config');
 const { appendAppointment } = require('./dataStore');
+const { generateId } = require('./idGenerator');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -82,7 +83,7 @@ const scheduleWithGoogle = async ({ lead, startAt }) => {
 const scheduleTestDrive = async (lead) => {
   const scheduledFor = parsePreferredDateTime(lead.inquiry);
   const baseRecord = {
-    id: `apt-${Date.now()}`,
+    id: generateId('apt'),
     leadId: lead.id,
     phone: lead.phone,
     callerName: lead.callerName || null,

@@ -9,6 +9,7 @@ const {
   appendFollowUp,
   updateFollowUpById
 } = require('./dataStore');
+const { generateId } = require('./idGenerator');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -112,7 +113,7 @@ const queueFollowUp = async (lead, assistantReply) => {
   const message = `Hi ${lead.callerName || ''}, thanks for contacting ${config.dealershipName}. Based on your request, our team can help with ${lead.topic}.${callbackText} Reply to this text to continue. Ref: ${lead.id}.${showroomText}`.trim();
 
   const record = {
-    id: `followup-${Date.now()}`,
+    id: generateId('followup'),
     leadId: lead.id,
     phone: lead.phone,
     message,

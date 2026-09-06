@@ -5,6 +5,7 @@ const timezone = require('dayjs/plugin/timezone');
 const config = require('./config');
 const { getKnowledgeBase, parsePreferences, findVehicleMatches } = require('./knowledgeBase');
 const { buildShowroomAsset } = require('./showroom');
+const { generateId } = require('./idGenerator');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -148,7 +149,7 @@ const buildLeadRecord = ({ phone, callerName, callerInput, persona, consentFollo
   const status = afterHoursStatus();
 
   return {
-    id: `lead-${Date.now()}`,
+    id: generateId('lead'),
     phone,
     callerName: callerName || null,
     inquiry: callerInput,
