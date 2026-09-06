@@ -123,46 +123,70 @@ const updateInSupabase = async (table, id, updates = {}) => {
   return mapFromSupabaseRow(rows[0]) || next;
 };
 
-const withFallback = async (remoteFn, localFn) => {
+// A Supabase failure here degrades production to ephemeral local-JSON
+// storage with no visible signal — most hosts wipe the local filesystem on
+// every redeploy, so a silent fallback is a silent path to losing every lead
+// captured until someone happens to notice. Always log it.
+const withFallback = async (label, remoteFn, localFn) => {
   if (!canUseSupabase()) {
     return localFn();
   }
 
   try {
     return await remoteFn();
-  } catch (_error) {
+  } catch (error) {
+    console.error(`Supabase ${label} failed, falling back to local JSON storage:`, error.message);
     return localFn();
   }
 };
 
-const listLeads = async () => withFallback(() => listFromSupabase(DEFAULT_TABLES.leads), () => readJson(files.leads, []));
+const listLeads = async () =>
+  withFallback('listLeads', () => listFromSupabase(DEFAULT_TABLES.leads), () => readJson(files.leads, []));
 
 const listFollowUps = async () =>
-  withFallback(() => listFromSupabase(DEFAULT_TABLES.followups), () => readJson(files.followups, []));
+  withFallback('listFollowUps', () => listFromSupabase(DEFAULT_TABLES.followups), () => readJson(files.followups, []));
 
 const listAppointments = async () =>
-  withFallback(() => listFromSupabase(DEFAULT_TABLES.appointments), () => readJson(files.appointments, []));
+  withFallback(
+    'listAppointments',
+    () => listFromSupabase(DEFAULT_TABLES.appointments),
+    () => readJson(files.appointments, [])
+  );
 
 const appendLead = async (lead) =>
-  withFallback(() => insertToSupabase(DEFAULT_TABLES.leads, lead), () => appendLeadLocal(lead));
+  withFallback('appendLead', () => insertToSupabase(DEFAULT_TABLES.leads, lead), () => appendLeadLocal(lead));
 
 const appendFollowUp = async (followup) =>
-  withFallback(() => insertToSupabase(DEFAULT_TABLES.followups, followup), () => appendFollowUpLocal(followup));
+  withFallback(
+    'appendFollowUp',
+    () => insertToSupabase(DEFAULT_TABLES.followups, followup),
+    () => appendFollowUpLocal(followup)
+  );
 
 const appendAppointment = async (appointment) =>
-  withFallback(() => insertToSupabase(DEFAULT_TABLES.appointments, appointment), () => appendAppointmentLocal(appointment));
+  withFallback(
+    'appendAppointment',
+    () => insertToSupabase(DEFAULT_TABLES.appointments, appointment),
+    () => appendAppointmentLocal(appointment)
+  );
 
 const updateLeadById = async (id, updates = {}) =>
-  withFallback(() => updateInSupabase(DEFAULT_TABLES.leads, id, updates), () => updateLeadByIdLocal(id, updates));
+  withFallback(
+    'updateLeadById',
+    () => updateInSupabase(DEFAULT_TABLES.leads, id, updates),
+    () => updateLeadByIdLocal(id, updates)
+  );
 
 const updateFollowUpById = async (id, updates = {}) =>
   withFallback(
+    'updateFollowUpById',
     () => updateInSupabase(DEFAULT_TABLES.followups, id, updates),
     () => updateFollowUpByIdLocal(id, updates)
   );
 
 const updateAppointmentById = async (id, updates = {}) =>
   withFallback(
+    'updateAppointmentById',
     () => updateInSupabase(DEFAULT_TABLES.appointments, id, updates),
     () => updateAppointmentByIdLocal(id, updates)
   );
