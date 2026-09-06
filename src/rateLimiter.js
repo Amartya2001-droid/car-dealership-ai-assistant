@@ -7,13 +7,34 @@ const createRateLimiter = ({
   windowMs = config.rateLimit.windowMs,
   max = config.rateLimit.max,
   keyGenerator = (req) => req.ip,
-  clock = Date.now
+  clock = Date.now,
+  // Every distinct key (IP) that ever hits this route gets an entry that
+  // otherwise only clears by being overwritten on that same key's next
+  // window — a scan/bot sweep from many IPs would grow this Map forever on
+  // a long-running process. Sweep expired entries every few windows.
+  sweepEveryNCalls = 200
 } = {}) => {
   const hits = new Map();
+  let callsSinceSweep = 0;
 
-  return (req, res, next) => {
+  const sweepExpired = (now) => {
+    for (const [key, entry] of hits) {
+      if (entry.resetAt <= now) {
+        hits.delete(key);
+      }
+    }
+  };
+
+  const middleware = (req, res, next) => {
     const key = keyGenerator(req);
     const now = clock();
+
+    callsSinceSweep += 1;
+    if (callsSinceSweep >= sweepEveryNCalls) {
+      callsSinceSweep = 0;
+      sweepExpired(now);
+    }
+
     const entry = hits.get(key);
 
     if (!entry || entry.resetAt <= now) {
@@ -30,6 +51,11 @@ const createRateLimiter = ({
     entry.count += 1;
     return next();
   };
+
+  // Test-only introspection hook — not part of the request-handling contract.
+  middleware.getTrackedKeyCount = () => hits.size;
+
+  return middleware;
 };
 
 module.exports = {

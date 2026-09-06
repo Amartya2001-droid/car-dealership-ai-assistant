@@ -74,6 +74,27 @@ test('rate limiter resets after the window elapses', () => {
   assert.equal(nextCalled, true);
 });
 
+test('rate limiter sweeps expired entries so tracked keys do not grow forever', () => {
+  let now = 0;
+  const limiter = createRateLimiter({
+    windowMs: 1000,
+    max: 5,
+    keyGenerator: (req) => req.ip,
+    clock: () => now,
+    sweepEveryNCalls: 10
+  });
+
+  for (let i = 0; i < 50; i += 1) {
+    now = i * 2000; // always past the previous window, so each key expires immediately
+    limiter({ ip: `10.0.0.${i}` }, makeRes(), () => {});
+  }
+
+  assert.ok(
+    limiter.getTrackedKeyCount() < 50,
+    `expected old entries to be swept, but ${limiter.getTrackedKeyCount()} keys are still tracked`
+  );
+});
+
 test('rate limiter tracks separate keys independently', () => {
   let now = 0;
   const limiter = createRateLimiter({ windowMs: 1000, max: 1, keyGenerator: (req) => req.ip, clock: () => now });
