@@ -18,8 +18,8 @@ const ReadinessBadge = ({ ok, readyLabel, blockedLabel }) => (
   <Badge
     className={
       ok
-        ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-        : 'border-amber-300 bg-amber-50 text-amber-700'
+        ? 'border-primary/30 bg-primary/10 text-primary'
+        : 'border-brand-highlight/30 bg-brand-highlight/10 text-brand-highlight'
     }
   >
     {ok ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <CircleAlert className="mr-1 h-3 w-3" />}
@@ -46,17 +46,17 @@ const DemoOperationsPanel = ({ demoOverview }) => {
   const nextActionPlan = launchChecklist.nextActionPlan || {};
 
   const narrativeToneClass = {
-    ready: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-    pilot: 'border-sky-300 bg-sky-50 text-sky-900',
-    demo: 'border-amber-300 bg-amber-50 text-amber-900',
-    blocked: 'border-red-300 bg-red-50 text-red-900'
+    ready: 'border-primary/30 bg-primary/10 text-foreground',
+    pilot: 'border-brand-accent/30 bg-brand-accent/10 text-foreground',
+    demo: 'border-brand-highlight/30 bg-brand-highlight/10 text-foreground',
+    blocked: 'border-destructive/30 bg-destructive/10 text-foreground'
   }[narrative.statusTone || 'blocked'];
 
   return (
-    <Card className="shadow-lg border-stone-200" data-testid="demo-operations-panel">
+    <Card className="shadow-none" data-testid="demo-operations-panel">
       <CardHeader>
-        <CardTitle className="text-lg font-bold text-stone-800 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-amber-600" />
+        <CardTitle className="text-lg font-semibold font-display flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-brand-accent" />
           Demo & Production Operations
         </CardTitle>
         <CardDescription>
@@ -76,24 +76,24 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+          <div className="rounded-xl border border-border bg-muted/40 p-4">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-stone-800">
-                <PlayCircle className="h-4 w-4 text-amber-600" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <PlayCircle className="h-4 w-4 text-brand-accent" />
                 Demo readiness
               </div>
               <ReadinessBadge ok={Boolean(readiness.ready)} readyLabel="Ready" blockedLabel="Needs setup" />
             </div>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-muted-foreground">
               Leads {readiness.counts?.leads || 0} • Appointments {readiness.counts?.appointments || 0} • Follow-ups{' '}
               {readiness.counts?.followups || 0}
             </p>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+          <div className="rounded-xl border border-border bg-muted/40 p-4">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-stone-800">
-                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <ShieldCheck className="h-4 w-4 text-primary" />
                 Production readiness
               </div>
               <ReadinessBadge
@@ -102,7 +102,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                 blockedLabel="Not ready"
               />
             </div>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-muted-foreground">
               Storage {production.storage?.activeProvider || 'local'} • OpenAI {production.integrations?.openai || 'n/a'}{' '}
               • Twilio {production.integrations?.twilio || 'n/a'}
             </p>
@@ -110,18 +110,18 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Launch blockers</div>
-            <div className="mt-2 text-2xl font-bold text-stone-900">{launchChecklist.blockerCount || 0}</div>
-            <p className="mt-1 text-xs text-stone-500">Must be cleared before a real production rollout.</p>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Launch blockers</div>
+            <div className="mt-2 text-2xl font-bold text-foreground">{launchChecklist.blockerCount || 0}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Must be cleared before a real production rollout.</p>
           </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Warnings</div>
-            <div className="mt-2 text-2xl font-bold text-stone-900">{launchChecklist.warningCount || 0}</div>
-            <p className="mt-1 text-xs text-stone-500">Non-blocking issues that still affect demos or pilots.</p>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Warnings</div>
+            <div className="mt-2 text-2xl font-bold text-foreground">{launchChecklist.warningCount || 0}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Non-blocking issues that still affect demos or pilots.</p>
           </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Pilot status</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pilot status</div>
             <div className="mt-2">
               <ReadinessBadge
                 ok={Boolean(launchChecklist.readyForPilot)}
@@ -129,17 +129,17 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                 blockedLabel="Pilot blocked"
               />
             </div>
-            <p className="mt-2 text-xs text-stone-500">Tracks whether next week’s supervised pilot path is realistic.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Tracks whether next week’s supervised pilot path is realistic.</p>
           </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-4 sm:col-span-3">
-            <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Completion score</div>
+          <div className="rounded-xl border border-border bg-card p-4 sm:col-span-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Completion score</div>
             <div className="mt-2 flex items-end gap-3">
-              <div className="text-3xl font-bold text-stone-900">{launchChecklist.completionScore || 0}%</div>
-              <div className="text-xs text-stone-500">Based on dashboard, data, env, AI, and telephony readiness.</div>
+              <div className="text-3xl font-bold text-foreground">{launchChecklist.completionScore || 0}%</div>
+              <div className="text-xs text-muted-foreground">Based on dashboard, data, env, AI, and telephony readiness.</div>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-500 transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-brand-accent via-brand-highlight to-primary transition-all"
                 style={{ width: `${launchChecklist.completionScore || 0}%` }}
               />
             </div>
@@ -154,10 +154,10 @@ const DemoOperationsPanel = ({ demoOverview }) => {
               ['thisWeek', 'This Week'],
               ['beforePilot', 'Before Pilot']
             ].map(([key, label]) => (
-              <div key={key} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</div>
-                <div className="mt-2 text-2xl font-bold text-stone-900">{phaseSummary[key]?.blocked || 0}</div>
-                <div className="mt-1 text-xs text-stone-500">
+              <div key={key} className="rounded-xl border border-border bg-muted/40 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+                <div className="mt-2 text-2xl font-bold text-foreground">{phaseSummary[key]?.blocked || 0}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
                   blocked • {phaseSummary[key]?.warnings || 0} warning{phaseSummary[key]?.warnings === 1 ? '' : 's'}
                 </div>
               </div>
@@ -166,14 +166,14 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {Object.keys(areaSummary).length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-3 text-sm font-semibold text-stone-800">Workstream breakdown</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 text-sm font-semibold text-foreground">Workstream breakdown</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               {Object.entries(areaSummary).map(([key, value]) => (
-                <div key={key} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{key}</div>
-                  <div className="mt-2 text-2xl font-bold text-stone-900">{value.blocked}</div>
-                  <div className="mt-1 text-xs text-stone-500">
+                <div key={key} className="rounded-lg border border-border bg-muted/40 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{key}</div>
+                  <div className="mt-2 text-2xl font-bold text-foreground">{value.blocked}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
                     blocked • {value.warnings} warning{value.warnings === 1 ? '' : 's'}
                   </div>
                 </div>
@@ -183,20 +183,20 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {Object.keys(gateSummary).length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-3 text-sm font-semibold text-stone-800">Go / no-go gates</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 text-sm font-semibold text-foreground">Go / no-go gates</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {[
                 ['demo', 'Demo'],
                 ['pilot', 'Pilot'],
                 ['production', 'Production']
               ].map(([key, label]) => (
-                <div key={key} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</div>
-                  <div className="mt-2 text-2xl font-bold text-stone-900">
+                <div key={key} className="rounded-lg border border-border bg-muted/40 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+                  <div className="mt-2 text-2xl font-bold text-foreground">
                     {gateSummary[key]?.passed || 0}/{gateSummary[key]?.total || 0}
                   </div>
-                  <div className="mt-1 text-xs text-stone-500">gates currently passing</div>
+                  <div className="mt-1 text-xs text-muted-foreground">gates currently passing</div>
                 </div>
               ))}
             </div>
@@ -204,28 +204,28 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {(unlockPlan.steps || []).length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-1 text-sm font-semibold text-stone-800">Recommended unlock sequence</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-1 text-sm font-semibold text-foreground">Recommended unlock sequence</div>
             {unlockPlan.headline && (
-              <div className="mb-4 text-sm text-stone-600">{unlockPlan.headline}</div>
+              <div className="mb-4 text-sm text-muted-foreground">{unlockPlan.headline}</div>
             )}
             <div className="space-y-3">
               {unlockPlan.steps.map((item, index) => (
-                <div key={item.id} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div key={item.id} className="rounded-lg border border-border bg-muted/40 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 text-xs font-semibold text-white">
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                       {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-medium text-stone-900">{item.title}</div>
-                        <Badge className="border-stone-300 bg-white text-stone-700">{item.phase}</Badge>
+                        <div className="font-medium text-foreground">{item.title}</div>
+                        <Badge className="border-border bg-card text-foreground">{item.phase}</Badge>
                       </div>
-                      <div className="mt-1 text-sm text-stone-600">{item.action}</div>
-                      <div className="mt-2 text-xs text-stone-500">Unlocks: {item.unlocks}</div>
-                      <div className="mt-1 text-xs text-stone-500">Why now: {item.whyNow}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{item.action}</div>
+                      <div className="mt-2 text-xs text-muted-foreground">Unlocks: {item.unlocks}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Why now: {item.whyNow}</div>
                       {item.command && (
-                        <div className="mt-2 rounded-md bg-white px-3 py-2 font-mono text-xs text-stone-600">
+                        <div className="mt-2 rounded-md bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
                           {item.command}
                         </div>
                       )}
@@ -235,7 +235,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="shrink-0 border-stone-300 text-stone-700"
+                        className="shrink-0 border-border text-foreground"
                         onClick={() => openUrl(item.route)}
                       >
                         Open
@@ -250,24 +250,24 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {nextActionPlan.headline && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-1 text-sm font-semibold text-stone-800">Action plan by dependency</div>
-            <div className="mb-4 text-sm text-stone-600">{nextActionPlan.headline}</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-1 text-sm font-semibold text-foreground">Action plan by dependency</div>
+            <div className="mb-4 text-sm text-muted-foreground">{nextActionPlan.headline}</div>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Can do now</div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Can do now</div>
                 <div className="mt-3 space-y-3">
                   {(nextActionPlan.canDoNow || []).length === 0 && (
-                    <div className="text-sm text-stone-500">No local blockers remain.</div>
+                    <div className="text-sm text-muted-foreground">No local blockers remain.</div>
                   )}
                   {(nextActionPlan.canDoNow || []).map((item) => (
-                    <div key={item.id} className="rounded-md border border-stone-200 bg-white p-3">
+                    <div key={item.id} className="rounded-md border border-border bg-card p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium text-stone-900">{item.title}</div>
-                          <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                          <div className="font-medium text-foreground">{item.title}</div>
+                          <div className="mt-1 text-sm text-muted-foreground">{item.action}</div>
                           {item.command && (
-                            <div className="mt-2 rounded-md bg-stone-50 px-3 py-2 font-mono text-xs text-stone-600">
+                            <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 font-mono text-xs text-muted-foreground">
                               {item.command}
                             </div>
                           )}
@@ -277,7 +277,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="shrink-0 border-stone-300 text-stone-700"
+                            className="shrink-0 border-border text-foreground"
                             onClick={() => openUrl(item.route)}
                           >
                             Open
@@ -290,22 +290,22 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Needs credentials</div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Needs credentials</div>
                 <div className="mt-3 space-y-3">
                   {(nextActionPlan.needsCredentials || []).length === 0 && (
-                    <div className="text-sm text-stone-500">No credential blockers remain.</div>
+                    <div className="text-sm text-muted-foreground">No credential blockers remain.</div>
                   )}
                   {(nextActionPlan.needsCredentials || []).map((item) => (
-                    <div key={item.id} className="rounded-md border border-stone-200 bg-white p-3">
+                    <div key={item.id} className="rounded-md border border-border bg-card p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium text-stone-900">{item.title}</div>
-                          <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                          <div className="font-medium text-foreground">{item.title}</div>
+                          <div className="mt-1 text-sm text-muted-foreground">{item.action}</div>
                           {(item.missingKeys || []).length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {item.missingKeys.map((key) => (
-                                <Badge key={key} variant="outline" className="border-stone-300 bg-white text-stone-700">
+                                <Badge key={key} variant="outline" className="border-border bg-card text-foreground">
                                   {key}
                                 </Badge>
                               ))}
@@ -317,7 +317,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="shrink-0 border-stone-300 text-stone-700"
+                            className="shrink-0 border-border text-foreground"
                             onClick={() => openUrl(item.route)}
                           >
                             Open
@@ -330,20 +330,20 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-stone-500">Verify next</div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Verify next</div>
                 <div className="mt-3 space-y-3">
                   {(nextActionPlan.verification || []).length === 0 && (
-                    <div className="text-sm text-stone-500">All checklist gates are passing.</div>
+                    <div className="text-sm text-muted-foreground">All checklist gates are passing.</div>
                   )}
                   {(nextActionPlan.verification || []).map((item) => (
-                    <div key={`${item.stage}-${item.label}`} className="rounded-md border border-stone-200 bg-white p-3">
+                    <div key={`${item.stage}-${item.label}`} className="rounded-md border border-border bg-card p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium text-stone-900">{item.label}</div>
-                          <div className="mt-1 text-sm capitalize text-stone-600">{item.stage} gate</div>
+                          <div className="font-medium text-foreground">{item.label}</div>
+                          <div className="mt-1 text-sm capitalize text-muted-foreground">{item.stage} gate</div>
                           {item.command && (
-                            <div className="mt-2 rounded-md bg-stone-50 px-3 py-2 font-mono text-xs text-stone-600">
+                            <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 font-mono text-xs text-muted-foreground">
                               {item.command}
                             </div>
                           )}
@@ -353,7 +353,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="shrink-0 border-stone-300 text-stone-700"
+                            className="shrink-0 border-border text-foreground"
                             onClick={() => openUrl(item.route)}
                           >
                             Open
@@ -369,15 +369,15 @@ const DemoOperationsPanel = ({ demoOverview }) => {
           </div>
         )}
 
-        <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-stone-800">
-            <Flag className="h-4 w-4 text-stone-600" />
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Flag className="h-4 w-4 text-muted-foreground" />
             Recording flow
           </div>
-          <ol className="space-y-2 text-sm text-stone-700">
+          <ol className="space-y-2 text-sm text-foreground">
             {recordingFlow.map((step, index) => (
               <li key={step} className="flex gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-900 text-xs font-semibold text-white">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                   {index + 1}
                 </span>
                 <span>{step}</span>
@@ -386,41 +386,41 @@ const DemoOperationsPanel = ({ demoOverview }) => {
           </ol>
         </div>
 
-        <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-stone-800">
-            <Sparkles className="h-4 w-4 text-violet-600" />
+        <div className="rounded-xl border border-border bg-muted/40 p-4">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Sparkles className="h-4 w-4 text-brand-highlight" />
             Demo scenarios
           </div>
           <div className="flex flex-wrap gap-2">
             {scenarios.map((scenario) => (
-              <Badge key={scenario.id} variant="outline" className="border-stone-300 bg-white text-stone-700">
+              <Badge key={scenario.id} variant="outline" className="border-border bg-card text-foreground">
                 {scenario.id}
               </Badge>
             ))}
           </div>
           {commands.scenarioRunExample && (
-            <p className="mt-3 text-xs text-stone-500">Run example: {commands.scenarioRunExample}</p>
+            <p className="mt-3 text-xs text-muted-foreground">Run example: {commands.scenarioRunExample}</p>
           )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-2 text-sm font-semibold text-stone-800">Recommended commands</div>
-            <div className="space-y-2 text-xs text-stone-600">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-2 text-sm font-semibold text-foreground">Recommended commands</div>
+            <div className="space-y-2 text-xs text-muted-foreground">
               {Object.entries(commands).map(([key, value]) => (
-                <div key={key} className="rounded-md bg-stone-50 px-3 py-2 font-mono">
+                <div key={key} className="rounded-md bg-muted/40 px-3 py-2 font-mono">
                   {value}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-2 text-sm font-semibold text-stone-800">Next steps</div>
-            <ul className="space-y-2 text-sm text-stone-700">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-2 text-sm font-semibold text-foreground">Next steps</div>
+            <ul className="space-y-2 text-sm text-foreground">
               {nextSteps.map((step) => (
                 <li key={step} className="flex gap-2">
-                  <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                  <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand-highlight" />
                   <span>{step}</span>
                 </li>
               ))}
@@ -429,18 +429,18 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         </div>
 
         {immediateActions.length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-3 text-sm font-semibold text-stone-800">Top actions for this week</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 text-sm font-semibold text-foreground">Top actions for this week</div>
             <div className="space-y-3">
               {immediateActions.map((item) => (
-                <div key={item.id} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div key={item.id} className="rounded-lg border border-border bg-muted/40 p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-stone-900">{item.title}</div>
-                    <Badge className="border-stone-300 bg-white text-stone-700">{item.phase}</Badge>
+                    <div className="font-medium text-foreground">{item.title}</div>
+                    <Badge className="border-border bg-card text-foreground">{item.phase}</Badge>
                   </div>
-                  <div className="mt-1 text-sm text-stone-600">{item.action}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{item.action}</div>
                   {item.command && (
-                    <div className="mt-2 rounded-md bg-white px-3 py-2 font-mono text-xs text-stone-600">
+                    <div className="mt-2 rounded-md bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
                       {item.command}
                     </div>
                   )}
@@ -451,11 +451,11 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {missingEnvKeys.length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-            <div className="mb-3 text-sm font-semibold text-stone-800">Missing production env keys</div>
+          <div className="rounded-xl border border-border bg-muted/40 p-4">
+            <div className="mb-3 text-sm font-semibold text-foreground">Missing production env keys</div>
             <div className="flex flex-wrap gap-2">
               {missingEnvKeys.map((item) => (
-                <Badge key={item} variant="outline" className="border-stone-300 bg-white text-stone-700">
+                <Badge key={item} variant="outline" className="border-border bg-card text-foreground">
                   {item}
                 </Badge>
               ))}
@@ -464,29 +464,29 @@ const DemoOperationsPanel = ({ demoOverview }) => {
         )}
 
         {(launchChecklist.blockers || []).length > 0 && (
-          <div className="rounded-xl border border-stone-200 bg-white p-4">
-            <div className="mb-3 text-sm font-semibold text-stone-800">Launch checklist</div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 text-sm font-semibold text-foreground">Launch checklist</div>
             <div className="space-y-3">
               {launchChecklist.blockers.map((item) => (
-                <div key={item.id} className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div key={item.id} className="rounded-lg border border-border bg-muted/40 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-stone-900">{item.title}</div>
-                      <div className="mt-1 text-sm text-stone-600">{item.detail}</div>
-                      <div className="mt-2 text-xs text-stone-500">{item.action}</div>
+                      <div className="font-medium text-foreground">{item.title}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{item.detail}</div>
+                      <div className="mt-2 text-xs text-muted-foreground">{item.action}</div>
                     </div>
                     <Badge
                       className={
                         item.status === 'blocked'
-                          ? 'border-red-300 bg-red-50 text-red-700'
-                          : 'border-amber-300 bg-amber-50 text-amber-700'
+                          ? 'border-destructive/30 bg-destructive/10 text-destructive'
+                          : 'border-brand-highlight/30 bg-brand-highlight/10 text-brand-highlight'
                       }
                     >
                       {item.status}
                     </Badge>
                   </div>
                   {item.command && (
-                    <div className="mt-2 rounded-md bg-white px-3 py-2 font-mono text-xs text-stone-600">
+                    <div className="mt-2 rounded-md bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
                       {item.command}
                     </div>
                   )}
@@ -498,13 +498,13 @@ const DemoOperationsPanel = ({ demoOverview }) => {
 
         <div className="flex flex-wrap gap-2">
           {routes.opsDashboard && (
-            <Button variant="outline" className="border-stone-300" onClick={() => openUrl(routes.opsDashboard)}>
+            <Button variant="outline" className="border-border" onClick={() => openUrl(routes.opsDashboard)}>
               Open Ops Dashboard
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
           )}
           {routes.demoReadiness && (
-            <Button variant="outline" className="border-stone-300" onClick={() => openUrl(routes.demoReadiness)}>
+            <Button variant="outline" className="border-border" onClick={() => openUrl(routes.demoReadiness)}>
               Demo Readiness JSON
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
@@ -512,7 +512,7 @@ const DemoOperationsPanel = ({ demoOverview }) => {
           {routes.productionReadiness && (
             <Button
               variant="outline"
-              className="border-stone-300"
+              className="border-border"
               onClick={() => openUrl(routes.productionReadiness)}
             >
               Production Readiness JSON
@@ -520,13 +520,13 @@ const DemoOperationsPanel = ({ demoOverview }) => {
             </Button>
           )}
           {routes.demoScenarios && (
-            <Button variant="outline" className="border-stone-300" onClick={() => openUrl(routes.demoScenarios)}>
+            <Button variant="outline" className="border-border" onClick={() => openUrl(routes.demoScenarios)}>
               Demo Scenarios
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
           )}
           {routes.launchChecklist && (
-            <Button variant="outline" className="border-stone-300" onClick={() => openUrl(routes.launchChecklist)}>
+            <Button variant="outline" className="border-border" onClick={() => openUrl(routes.launchChecklist)}>
               Launch Checklist JSON
               <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
