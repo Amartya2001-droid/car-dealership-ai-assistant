@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-06 (Reliability Fixes)
+- Replaced `Date.now()`-only ids for leads, appointments, and follow-ups with a collision-resistant generator (concurrent requests could previously produce duplicate ids).
+- Logged Supabase fallback failures instead of silently swallowing them — a degraded Supabase connection in production was previously invisible.
+- Fixed the rate limiter's in-memory hit tracker growing unbounded on a long-running process by periodically sweeping expired entries.
+- Recolored the last component still on the old ad-hoc Tailwind palette (`DemoOperationsPanel`) onto the shared brand tokens.
+- Documented `EXPOSE_ERROR_DETAILS`/`DATA_DIR` in the env templates, and added README coverage for the security/production-hardening features and the shared design system.
+
+## 2026-08-24 (Shared Design System)
+- Replaced the React dashboard's default shadcn placeholder tokens and Inter/Playfair fonts with the dealership's real brand colors (derived from the existing `public/dashboard.css` values) and Source Serif 4 / Manrope.
+- Added a "Night Operations" dark theme and a persisted toggle to the built-in dashboard, the React dashboard, and the new landing page — all three share one `localStorage` key.
+- Replaced the built-in dashboard's four separately-shadowed KPI cards with one ruled grid, and fixed several colors that were hardcoded instead of theme-variable-driven (would have broken under dark mode).
+- Recolored the React dashboard's header, KPI cards, and lead/appointment/follow-up badges off the default Tailwind palette (17+ unrelated hues) onto the brand tokens.
+- Added a marketing landing page at `/` for the after-hours AI product itself, grounded in real product features with no fabricated testimonials.
+
+## 2026-08-21 (Security & Production Hardening)
+- Added Twilio webhook signature validation (automatic once `TWILIO_AUTH_TOKEN` is set).
+- Added an admin API key gate on lead/appointment/follow-up admin routes.
+- Added a configurable CORS origin allowlist, baseline security response headers, and rate limiting on the public simulate-call endpoint.
+- Added consistent JSON error handling/404s, graceful shutdown on `SIGTERM`/`SIGINT`, and structured JSON request logging.
+
 ## 2026-07-04 (Launch Action Plan)
 - Added a dependency-based `nextActionPlan` to the launch checklist payload.
 - Split rollout actions into local tasks, credential-backed blockers, and verification gates.
