@@ -193,6 +193,7 @@ The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and run `DEPLOYMENT_URL=https://your-public-url npm run verify:production-url`.
 
 ## API Endpoints
+- `GET /` (marketing landing page — see [Design & Theming](#design--theming))
 - `GET /dashboard`
 - `GET /health`
 - `GET /config/personas`
@@ -242,6 +243,7 @@ The monitoring UI at `/dashboard` shows:
 - direct quick links to the main admin JSON endpoints
 - launch-checklist visibility for next-week production prep
 - showroom brochure and walkaround links inside lead cards
+- a light/dark theme toggle (persisted per browser; see [Design & Theming](#design--theming))
 
 The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
 For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboard-status`, or `npm run dashboard:links`.
@@ -253,6 +255,30 @@ For a go-live blocker list tied to next week’s rollout, use `GET /admin/launch
 The launch checklist now groups blockers into `today`, `beforeDemo`, `thisWeek`, and `beforePilot`, and surfaces the top immediate actions, dependency-based next-action plan, phase summaries, completion score, workstream breakdown, and a short rollout narrative directly in the operator dashboard.
 
 For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
+
+## Design & Theming
+The built-in dashboard, the React dashboard, and the landing page at `/` all
+share one brand token system (colors, fonts, radii) instead of maintaining
+their own look independently:
+
+- **Light theme** ("Heritage Refined") — warm cream background, forest green
+  and terracotta accents, Source Serif 4 + Manrope. This is the existing
+  Northstar palette, refined rather than replaced.
+- **Dark theme** ("Night Operations") — a near-black console background with
+  amber/teal accents, leaning into the "after-hours" framing. Every surface
+  picks a theme from `localStorage` (falling back to the browser's
+  `prefers-color-scheme`) via a toggle in the header of all three pages; the
+  built-in dashboard and landing page share the same `localStorage` key, so
+  the preference carries across pages on the same origin.
+- **Landing page** (`GET /`) — a marketing page for the after-hours AI
+  concierge product itself, aimed at dealerships evaluating it: a one-line
+  hero with a live-demo call to action, a three-step "how it works," and
+  benefit copy grounded in what the product actually does (no fabricated
+  testimonials or metrics).
+
+The token source of truth is `public/dashboard.css`'s `:root` (light) and
+`[data-theme="dark"]` blocks; `frontend/src/index.css` mirrors the same
+colors as shadcn-style HSL custom properties for the React app.
 
 ## Runtime Status
 Use `GET /admin/runtime` or `npm run check:env` to inspect requested provider, active provider, and whether Supabase credentials are present.
