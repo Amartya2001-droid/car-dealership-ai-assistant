@@ -15,6 +15,7 @@ AI voice assistant for after-hours dealership calls. It answers inventory/servic
 - Callback window extraction for next-business-day outreach.
 - Virtual showroom brochure/walkaround links attached to matched vehicle leads.
 - Admin summary endpoint for triaging leads, appointments, and follow-up backlog.
+- Twilio webhook signature validation, an admin API key gate on lead/appointment/follow-up routes, a CORS origin allowlist, baseline security response headers, rate limiting on the public simulate-call endpoint, consistent JSON error handling, graceful shutdown, and structured request logging (see [Security & Production Hardening](#security--production-hardening)).
 
 ## Quick Start (under 5 min)
 1. Install dependencies:
@@ -183,6 +184,11 @@ Behavior:
    - `TWILIO_AUTH_TOKEN`
    - `TWILIO_PHONE_NUMBER`
 
+Once `TWILIO_AUTH_TOKEN` is set, incoming voice webhook requests are
+validated against Twilio's request signature automatically (a request
+without a valid `X-Twilio-Signature` header is rejected with 403). Set
+`TWILIO_VALIDATE_WEBHOOKS=false` to disable this if needed.
+
 The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
 Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and run `DEPLOYMENT_URL=https://your-public-url npm run verify:production-url`.
 
@@ -198,21 +204,23 @@ Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and 
 - `GET /admin/demo-scenarios`
 - `GET /admin/demo/run-sheet/:scenarioId`
 - `GET /admin/launch-checklist`
-- `POST /admin/demo/reset`
-- `POST /admin/demo/seed`
-- `POST /admin/demo/scenarios/:scenarioId/run`
-- `POST /webhooks/twilio/voice`
-- `POST /webhooks/twilio/voice/collect`
-- `POST /simulate/call`
-- `GET /admin/leads`
-- `GET /admin/followups`
-- `GET /admin/appointments`
+- `POST /admin/demo/reset` 🔒
+- `POST /admin/demo/seed` 🔒
+- `POST /admin/demo/scenarios/:scenarioId/run` 🔒
+- `POST /webhooks/twilio/voice` (Twilio signature required once `TWILIO_AUTH_TOKEN` is set)
+- `POST /webhooks/twilio/voice/collect` (same)
+- `POST /simulate/call` (rate limited — see [Security & Production Hardening](#security--production-hardening))
+- `GET /admin/leads` 🔒
+- `GET /admin/followups` 🔒
+- `GET /admin/appointments` 🔒
 - `GET /admin/summary`
-- `POST /admin/test-drives/schedule`
-- `POST /admin/test-drives/:appointmentId/confirm`
-- `POST /admin/leads/:leadId/callback-window`
-- `POST /admin/run-followups`
-- `POST /admin/knowledge/snapshot`
+- `POST /admin/test-drives/schedule` 🔒
+- `POST /admin/test-drives/:appointmentId/confirm` 🔒
+- `POST /admin/leads/:leadId/callback-window` 🔒
+- `POST /admin/run-followups` 🔒
+- `POST /admin/knowledge/snapshot` 🔒
+
+🔒 = requires the `x-admin-api-key` header (or `?api_key=`) once `ADMIN_API_KEY` is set; unauthenticated when it is not.
 
 ## Data Files
 - `data/leads.json`
@@ -249,6 +257,17 @@ For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-p
 ## Runtime Status
 Use `GET /admin/runtime` or `npm run check:env` to inspect requested provider, active provider, and whether Supabase credentials are present.
 For Supabase schema/environment setup, see [`docs/supabase-setup.md`](./docs/supabase-setup.md).
+
+## Security & Production Hardening
+- **Twilio webhook signature validation** — automatic once `TWILIO_AUTH_TOKEN` is set; disable with `TWILIO_VALIDATE_WEBHOOKS=false`.
+- **Admin API key** — set `ADMIN_API_KEY` to require the `x-admin-api-key` header (or `?api_key=` query param, for plain links) on lead/appointment/follow-up admin routes. Unconfigured by default so local/demo use needs no setup; the built-in dashboard forwards the key from its own `?api_key=` URL param, and the React dashboard reads it from `REACT_APP_ADMIN_API_KEY` at build time.
+- **CORS allowlist** — set `ALLOWED_ORIGINS` (comma-separated) to restrict which browser origins can call the API; unset reflects any origin, matching the previous open behavior.
+- **Rate limiting** — the public `/simulate/call` endpoint is limited via `RATE_LIMIT_WINDOW_MS`/`RATE_LIMIT_MAX` (defaults: 20 requests per 60s per IP) to bound OpenAI/storage cost from an open loop. The Twilio webhook is intentionally excluded since it's already signature-protected and Twilio proxies calls from shared IPs.
+- **Security response headers** — `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and HSTS on HTTPS requests, applied to every response.
+- **Consistent error handling** — unhandled route errors and unknown paths return JSON (not Express's default HTML page); set `EXPOSE_ERROR_DETAILS=true` to include message/stack (on by default outside `NODE_ENV=production`).
+- **Graceful shutdown** — the server closes its HTTP listener cleanly on `SIGTERM`/`SIGINT` (with a 10s hard-exit fallback), so container platforms can redeploy without dropping in-flight requests.
+- **Structured request logging** — one JSON line per request (method, path, status, duration, ip) to stdout; query strings are deliberately excluded so `?api_key=...` never reaches the logs.
+- **Supabase fallback visibility** — a failed Supabase call is now logged (which operation, and why) before falling back to local JSON, since that fallback is otherwise silent and most hosts wipe local storage on redeploy.
 
 ## Next Planned Milestones
 - Day 4: OpenAI voice enhancements + stronger sentiment adaptation.
