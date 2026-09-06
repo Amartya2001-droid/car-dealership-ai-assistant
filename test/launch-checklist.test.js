@@ -8,11 +8,11 @@ test('buildLaunchChecklist reports blocked production items and demo warnings', 
     production: {
       localRunnable: true,
       productionReady: false,
-      missingProduction: ['BASE_URL', 'SUPABASE_URL', 'TWILIO_ACCOUNT_SID'],
+      missingProduction: ['BASE_URL', 'SUPABASE_URL', 'TWILIO_ACCOUNT_SID', 'ADMIN_API_KEY'],
       warnings: ['USE_MOCK_AI is enabled.'],
       storage: { activeProvider: 'local_json' },
       dashboard: { ready: false },
-      integrations: { openai: 'mock', twilio: 'missing' }
+      integrations: { openai: 'mock', twilio: 'missing', adminAuth: 'unconfigured' }
     },
     readiness: {
       ready: false,
@@ -33,6 +33,9 @@ test('buildLaunchChecklist reports blocked production items and demo warnings', 
   assert.ok(checklist.warnings.length >= 1);
   assert.ok(checklist.blockers.some((item) => item.id === 'supabase'));
   assert.ok(checklist.blockers.some((item) => item.id === 'demo-data'));
+  assert.ok(checklist.blockers.some((item) => item.id === 'admin-auth'));
+  assert.ok(checklist.nextActionPlan.needsCredentials.some((item) => item.id === 'admin-auth'));
+  assert.ok(checklist.missingEnvKeys.includes('ADMIN_API_KEY'));
   assert.ok(checklist.missingEnvKeys.includes('BASE_URL'));
   assert.ok(checklist.immediateActions.length >= 1);
   assert.ok(checklist.timeline.today.length >= 1);
@@ -67,7 +70,7 @@ test('buildLaunchChecklist reports a clean path when demo and production are rea
       warnings: [],
       storage: { activeProvider: 'supabase' },
       dashboard: { ready: true },
-      integrations: { openai: 'configured', twilio: 'configured' }
+      integrations: { openai: 'configured', twilio: 'configured', adminAuth: 'enforced' }
     },
     readiness: {
       ready: true,

@@ -1,4 +1,4 @@
-const { REQUIRED_BASE, REQUIRED_SUPABASE, REQUIRED_TWILIO } = require('./productionReadiness');
+const { REQUIRED_BASE, REQUIRED_SUPABASE, REQUIRED_TWILIO, REQUIRED_ADMIN } = require('./productionReadiness');
 
 const hasAny = (values = [], required = []) => required.some((item) => values.includes(item));
 const unique = (values = []) => [...new Set(values)];
@@ -198,7 +198,7 @@ const buildNextActionPlan = ({
   readyForProduction,
   routes = {}
 }) => {
-  const credentialIds = new Set(['supabase', 'openai', 'twilio']);
+  const credentialIds = new Set(['supabase', 'openai', 'twilio', 'admin-auth']);
   const localIds = new Set(['dashboard', 'demo-dashboard', 'demo-data', 'base-env']);
   const failedGates = Object.entries(gates).flatMap(([stage, items]) =>
     items
@@ -260,6 +260,7 @@ const buildLaunchChecklist = ({
   const missingBase = missingProduction.filter((item) => REQUIRED_BASE.includes(item));
   const missingSupabase = missingProduction.filter((item) => REQUIRED_SUPABASE.includes(item));
   const missingTwilio = missingProduction.filter((item) => REQUIRED_TWILIO.includes(item));
+  const missingAdmin = missingProduction.filter((item) => REQUIRED_ADMIN.includes(item));
 
   if (hasAny(missingProduction, REQUIRED_BASE)) {
     blockers.push({
@@ -320,6 +321,21 @@ const buildLaunchChecklist = ({
       action: 'Configure Twilio and point the number webhook to /webhooks/twilio/voice.',
       command: 'npm run verify:production-url',
       missingKeys: missingTwilio
+    });
+  }
+
+  if (production.integrations?.adminAuth !== 'enforced') {
+    blockers.push({
+      id: 'admin-auth',
+      area: 'security',
+      status: 'blocked',
+      phase: 'before-pilot',
+      priority: 4,
+      title: 'Admin routes are not locked down',
+      detail: 'ADMIN_API_KEY is not set — lead, appointment, and follow-up admin routes are unauthenticated.',
+      action: 'Set ADMIN_API_KEY before any real customer data reaches this deployment.',
+      command: 'npm run check:production',
+      missingKeys: missingAdmin
     });
   }
 
@@ -442,6 +458,13 @@ const buildLaunchChecklist = ({
         passed: Boolean(production.integrations?.twilio === 'configured'),
         description: 'The phone number and webhook can support real inbound pilot calls.',
         command: 'npm run verify:production-url',
+        route: routes.productionReadiness
+      }),
+      buildGate({
+        label: 'Admin routes locked down',
+        passed: Boolean(production.integrations?.adminAuth === 'enforced'),
+        description: 'ADMIN_API_KEY is set so lead/appointment/follow-up admin routes require authentication.',
+        command: 'npm run check:production',
         route: routes.productionReadiness
       })
     ],
