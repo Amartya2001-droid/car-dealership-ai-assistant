@@ -59,7 +59,7 @@ const createApp = () => {
       core ||= Promise.all([import('../app-core/api.mjs'), import('../app-core/local-store.mjs')]).then(([api, store]) => ({...api, db: store.localStore(config.dataDir)}));
       const {handleApi, db} = await core;
       const headers = new Headers();
-      for (const [key, value] of Object.entries(req.headers)) if (typeof value === 'string' && !['content-length','host'].includes(key)) headers.set(key, value);
+      for (const [key, value] of Object.entries(req.headers)) if (typeof value === 'string' && !['content-length','host','cf-connecting-ip','x-real-ip'].includes(key)) headers.set(key, value);
       headers.set('x-real-ip', req.ip);
       const request = new Request(`${req.protocol}://${req.get('host')}${req.originalUrl}`, {method:req.method, headers, ...(!['GET','HEAD'].includes(req.method) ? {body: req.originalUrl.startsWith('/api/webhooks/twilio/') ? new URLSearchParams(req.body || {}).toString() : JSON.stringify(req.body || {})}: {})});
       const response = await handleApi(request, process.env, db);

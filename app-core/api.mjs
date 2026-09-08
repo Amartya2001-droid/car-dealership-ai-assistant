@@ -1,3 +1,4 @@
+import { readBody } from './body.mjs';
 import { answerQuestion } from "./answers.mjs";
 import { voiceResponse } from "./voice.mjs";
 const json = (data, status = 200, headers = {}) =>
@@ -136,7 +137,7 @@ export async function handleApi(request, env, db) {
       );
     let body = {};
     if (["POST", "PATCH", "DELETE"].includes(method)) {
-      const raw = await request.text();
+      const raw = await readBody(request);
       if (raw.length > 32000) fail(413, "Request is too large.");
       try {
         body = raw ? JSON.parse(raw) : {};
@@ -275,7 +276,7 @@ export async function handleApi(request, env, db) {
           +time > Date.now() + 90 * 86400000
         )
           fail(400, "Choose a future time within the next 90 days.");
-        if (time.getUTCMinutes() % 30 !== 0 || time.getUTCSeconds() !== 0)
+        if (time.getUTCMinutes() % 30 !== 0 || time.getUTCSeconds() !== 0 || time.getUTCMilliseconds() !== 0)
           fail(400, "Choose a time on the hour or half hour.");
         appointment = {
           id: id(),

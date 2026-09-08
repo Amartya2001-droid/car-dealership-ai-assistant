@@ -1,3 +1,4 @@
+import {copyText,exportCsv,isNative,listenBack,minimize} from "../lib/native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   ArrowUpRight,
@@ -136,6 +137,23 @@ export default function Workspace() {
     [leadQuery, setLeadQuery] = useState(""),
     [leadStatus, setLeadStatus] = useState("all"),
     [offline, setOffline] = useState(!navigator.onLine);
+  useEffect(() => {
+    if(!isNative()) return;
+    const listener=listenBack(() => {
+      if(privacy) setPrivacy(false);
+      else if(chat) setChat(false);
+      else if(editLead) setEditLead(null);
+      else if(editVehicle) setEditVehicle(null);
+      else if(tracking) setTracking(false);
+      else if(receipt) setReceipt(null);
+      else if(booking) setBooking(null);
+      else if(selected) setSelected(null);
+      else if(login) setLogin(false);
+      else if(view==='staff') setView('shop');
+      else minimize();
+    });
+    return () => {listener.then(handle=>handle.remove()).catch(()=>{});};
+  },[privacy,chat,editLead,editVehicle,tracking,receipt,booking,selected,login,view]);
   const load = useCallback(async () => {
     try {
       const [config, inventory, session] = await Promise.all([
@@ -792,13 +810,7 @@ export default function Workspace() {
                                 .join(","),
                             )
                             .join("\r\n");
-                          const a = document.createElement("a");
-                          a.href = URL.createObjectURL(
-                            new Blob([csv], { type: "text/csv" }),
-                          );
-                          a.download = "northstar-leads.csv";
-                          a.click();
-                          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+                          run(()=>exportCsv(csv));
                         }}
                       >
                         <Download size={16} /> Export
@@ -1294,7 +1306,7 @@ export default function Workspace() {
           <Button
             onClick={() =>
               run(async () => {
-                await navigator.clipboard.writeText(receipt.trackingToken);
+                await copyText(receipt.trackingToken);
                 toast.success("Request code copied");
               })
             }
@@ -1334,7 +1346,7 @@ export default function Workspace() {
           </form>
           {trackResult && (
             <div className="tracking-result">
-              <span className="badge">{trackResult.status}</span>
+              <span className="badge">Inquiry: {trackResult.status}</span>
               <h3>{trackResult.vehicleName || "General inquiry"}</h3>
               {trackResult.appointments.map((a) => (
                 <p key={a.id}>

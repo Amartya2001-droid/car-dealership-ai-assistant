@@ -1,5 +1,6 @@
 import { build } from "esbuild";
-import { mkdir, cp, writeFile } from "node:fs/promises";
+import { mkdir, cp, writeFile, rm } from "node:fs/promises";
+await rm("dist", {recursive:true,force:true});
 await mkdir("dist/server", { recursive: true });
 await build({
   entryPoints: ["app-core/worker.mjs"],

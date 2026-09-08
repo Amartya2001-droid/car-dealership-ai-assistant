@@ -46,16 +46,13 @@ test('admin auth guard accepts a matching header key', () => {
   assert.equal(nextCalled, true);
 });
 
-test('admin auth guard accepts a matching api_key query param', () => {
-  const guard = createAdminAuthGuard({ apiKey: 'secret-key' });
+test('admin auth guard rejects query credentials to keep secrets out of URLs', () => {
+  const guard = createAdminAuthGuard({ apiKey: 'secret' });
   const res = makeRes();
-  let nextCalled = false;
-
-  guard({ headers: {}, query: { api_key: 'secret-key' } }, res, () => {
-    nextCalled = true;
-  });
-
-  assert.equal(nextCalled, true);
+  let called = false;
+  guard({ headers: {}, query: { api_key: 'secret' } }, res, () => { called = true; });
+  assert.equal(called, false);
+  assert.equal(res.statusCode, 401);
 });
 
 test('admin auth guard rejects a missing or wrong key with 401', () => {

@@ -43,7 +43,7 @@ let dashboardState = {
 // This static page has no login flow, so operators pass it via
 // /dashboard?api_key=... and we forward it as a header on every request and
 // onto the raw-JSON jump links below.
-const adminApiKey = new URLSearchParams(window.location.search).get('api_key') || '';
+const adminApiKey = '';
 
 const adminFetch = (path) =>
   fetch(path, adminApiKey ? { headers: { 'x-admin-api-key': adminApiKey } } : undefined);
@@ -209,7 +209,7 @@ const loadDashboard = async () => {
     const unauthorized = [leadsRes, appointmentsRes, followupsRes].some((res) => res.status === 401);
     if (unauthorized) {
       throw new Error(
-        'Admin key required. Open this page as /dashboard?api_key=YOUR_ADMIN_API_KEY.'
+        'Admin key required. Open the staff workspace at /.'
       );
     }
 

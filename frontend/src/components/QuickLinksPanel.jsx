@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const API_BASE_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
-const ADMIN_API_KEY = process.env.REACT_APP_ADMIN_API_KEY || '';
+const ADMIN_API_KEY = ''; // Legacy links never carry credentials.
 const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
 // Plain <a> links can't set a custom header, so gated routes carry the key
 // as a query param instead. Only used for the raw-JSON admin links below.

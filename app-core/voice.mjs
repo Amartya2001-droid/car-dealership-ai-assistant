@@ -1,3 +1,4 @@
+import { readBody } from './body.mjs';
 import { answerQuestion } from "./answers.mjs";
 const xmlEscape = (s) =>
   String(s).replace(
@@ -54,7 +55,7 @@ export async function validSignature(url, params, signature, token) {
 export async function voiceResponse(request, env, db, cfg) {
   if (request.method !== "POST") return twiml("", 405);
   if (!env.TWILIO_AUTH_TOKEN) return twiml("", 503);
-  const raw = await request.text();
+  const raw = await readBody(request);
   if (raw.length > 16000) return twiml("", 413);
   const params = new URLSearchParams(raw);
   // The trusted, configured public URL must match the URL Twilio signed.

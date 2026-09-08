@@ -346,3 +346,17 @@ test("AI provider failure returns a labeled guided answer, without losing the in
     global.fetch = previous;
   }
 });
+
+test("sub-second appointment times cannot bypass slot uniqueness", async (t) => {
+  const f = await fixture(t); await f.login();
+  const created = await f.request('/admin/inventory', {method:'POST',body:vehicle});
+  const response = await f.request('/inquiries', {method:'POST',body:{...inquiry,vehicleId:created.data.vehicle.id,scheduledFor:slot().replace('.000Z','.001Z')}});
+  assert.equal(response.status,400);
+  assert.equal((await f.db.all('SELECT id FROM leads')).length,0);
+});
+
+test("oversized streaming request is rejected before parsing", async (t) => {
+  const f = await fixture(t);
+  const response=await handleApi(new Request('https://test.example/api/chat',{method:'POST',body:JSON.stringify({message:'x'.repeat(33000)})}),env,f.db);
+  assert.equal(response.status,413);
+});

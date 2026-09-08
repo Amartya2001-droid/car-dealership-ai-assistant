@@ -1,5 +1,7 @@
 FROM node:22-bookworm-slim AS web
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 COPY frontend/package.json frontend/yarn.lock ./frontend/
 RUN cd frontend && corepack yarn install --frozen-lockfile
 COPY frontend ./frontend

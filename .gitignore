@@ -23,3 +23,5 @@ android/build
 *.keystore
 *.aab
 *.apk
+
+frontend/build-android
