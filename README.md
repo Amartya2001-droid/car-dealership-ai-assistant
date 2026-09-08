@@ -1,3 +1,21 @@
+# Northstar Auto — web and Android app
+
+This repository now includes a shopper showroom and protected dealership staff workspace backed by a shared API. Start with [the app setup guide](docs/APP-SETUP.md) for current installation, hosting, AI, voice, and Android instructions.
+
+**Shopper:** inventory search and filters, shortlist, vehicle details and payment estimates, guided/live AI assistance, inquiries, test-drive requests, private status tracking and data deletion.
+
+**Staff:** sign-in, lead notes and status, appointment confirmation/cancellation/completion, inventory editing, CSV export and dealership settings.
+
+**Runtime:** React + existing CRA build, Node/SQLite locally, Cloudflare Worker/D1 when hosted, Capacitor Android (API 36). Run `npm test` for isolated tests, `npm run build` for the web/Worker build, and `APP_BACKEND_URL=https://your-public-backend npm run android:prepare` to prepare native assets. Use `docs/APP-SETUP.md` for signing and launch requirements.
+
+Live AI and telephone handling require your provider accounts. The supplied preview uses clearly labeled sample inventory and guided answers until configured. The commercial distribution is one dealership per deployment; there is no subscription billing or multi-tenant account system.
+
+---
+
+## Legacy backend documentation
+
+The notes below describe the original voice/demo endpoints. For the unified app, use the guide above. Legacy operations remain separate unless explicitly documented as migrated.
+
 # Car Dealership AI Assistant
 
 AI voice assistant for after-hours dealership calls. It answers inventory/service questions, captures leads, queues next-day follow-up messages, and supports Twilio voice integration.

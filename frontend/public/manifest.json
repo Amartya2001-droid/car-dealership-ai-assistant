@@ -1,0 +1,16 @@
+{
+  "name": "Northstar Auto",
+  "short_name": "Northstar",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8faf9",
+  "theme_color": "#173d31",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

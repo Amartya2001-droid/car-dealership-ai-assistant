@@ -13,3 +13,13 @@ coverage
 .miniforge
 .venv
 dist
+
+data/*.sqlite*
+android/.gradle
+android/local.properties
+android/app/build
+android/build
+*.jks
+*.keystore
+*.aab
+*.apk

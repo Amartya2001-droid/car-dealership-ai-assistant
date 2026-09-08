@@ -52,7 +52,25 @@ const createApp = () => {
   app.use(cors(buildCorsOptions(parseAllowedOrigins(config.allowedOrigins))));
   app.use(createSecurityHeaders());
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.json());
+  app.use(express.json({ limit: '32kb' }));
+  let core;
+  app.use('/api', async (req, res, next) => {
+    try {
+      core ||= Promise.all([import('../app-core/api.mjs'), import('../app-core/local-store.mjs')]).then(([api, store]) => ({...api, db: store.localStore(config.dataDir)}));
+      const {handleApi, db} = await core;
+      const headers = new Headers();
+      for (const [key, value] of Object.entries(req.headers)) if (typeof value === 'string' && !['content-length','host'].includes(key)) headers.set(key, value);
+      headers.set('x-real-ip', req.ip);
+      const request = new Request(`${req.protocol}://${req.get('host')}${req.originalUrl}`, {method:req.method, headers, ...(!['GET','HEAD'].includes(req.method) ? {body: req.originalUrl.startsWith('/api/webhooks/twilio/') ? new URLSearchParams(req.body || {}).toString() : JSON.stringify(req.body || {})}: {})});
+      const response = await handleApi(request, process.env, db);
+      res.status(response.status);
+      response.headers.forEach((value,key) => res.setHeader(key,value));
+      res.send(await response.text());
+    } catch (error) { next(error); }
+  });
+  app.use('/admin', adminAuthGuard);
+  app.use('/simulate', adminAuthGuard);
+  app.use(express.static(reactDashboardBuildDir));
   app.use('/dashboard-assets', express.static(path.join(__dirname, '..', 'public')));
   app.use('/ops-dashboard', express.static(reactDashboardBuildDir));
 
@@ -327,7 +345,7 @@ const createApp = () => {
   });
 
   app.get('/', (_req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'landing.html'));
+    res.sendFile(path.join(reactDashboardBuildDir, 'index.html'));
   });
 
   app.get('/dashboard', (_req, res) => {
@@ -432,7 +450,7 @@ const createApp = () => {
   const simulateCallRateLimiter = createRateLimiter();
 
   app.post('/simulate/call', simulateCallRateLimiter, async (req, res) => {
-    const { phone, callerName, message, persona = config.defaultPersona, optInFollowUp = true } = req.body;
+    const { phone, callerName, message, persona = config.defaultPersona, optInFollowUp = false } = req.body;
 
     const validation = validateSimulatedCall({ phone, message, persona });
     if (!validation.valid) {

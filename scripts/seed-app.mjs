@@ -1,0 +1,10 @@
+import 'dotenv/config';
+import {localStore} from '../app-core/local-store.mjs';
+import {handleApi} from '../app-core/api.mjs';
+const db=localStore(process.env.DATA_DIR||'data');
+const login=await handleApi(new Request('http://localhost:3000/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:process.env.ADMIN_EMAIL,password:process.env.ADMIN_PASSWORD})}),process.env,db);
+if(!login.ok)throw new Error('Could not authenticate to load samples');
+const cookie=login.headers.get('set-cookie').split(';')[0];
+const result=await handleApi(new Request('http://localhost:3000/api/admin/seed',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:'{}'}),process.env,db);
+console.log('Sample inventory:',result.status);
+db.close();

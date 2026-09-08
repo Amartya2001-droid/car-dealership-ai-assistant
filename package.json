@@ -6,7 +6,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node scripts/test.mjs",
     "start": "node index.js",
     "dev": "node --watch index.js",
     "dashboard:install": "npm --prefix frontend install --legacy-peer-deps",
@@ -33,13 +33,20 @@
     "dashboard:refresh": "bash scripts/rebuild-dashboard.sh",
     "dashboard:links": "node scripts/print-dashboard-links.js",
     "dashboard:status": "node scripts/print-dashboard-readiness.js",
-    "dashboard:overview": "node scripts/print-dashboard-overview.js"
+    "dashboard:overview": "node scripts/print-dashboard-overview.js",
+    "build": "npm run dashboard:build && node scripts/build-site.mjs",
+    "build:site": "node scripts/build-site.mjs",
+    "seed:app": "node scripts/seed-app.mjs",
+    "db:generate": "drizzle-kit generate",
+    "android:prepare": "node scripts/build-android.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
     "cors": "^2.8.6",
     "dayjs": "^1.11.19",
     "dotenv": "^17.3.1",
@@ -48,5 +55,14 @@
     "openai": "^6.27.0",
     "twilio": "^5.12.2",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "esbuild": "^0.28.2"
+  },
+  "engines": {
+    "node": ">=22.22.0"
   }
 }

@@ -27,7 +27,8 @@ const canUseSupabase = () =>
 const buildHeaders = () => ({
   'Content-Type': 'application/json',
   apikey: config.supabase.anonKey,
-  Authorization: `Bearer ${config.supabase.anonKey}`
+  Authorization: `Bearer ${config.supabase.anonKey}`,
+  Prefer: 'return=representation'
 });
 
 const encodeEq = (value) => encodeURIComponent(String(value));
@@ -135,6 +136,7 @@ const withFallback = async (label, remoteFn, localFn) => {
   try {
     return await remoteFn();
   } catch (error) {
+    if (config.nodeEnv === 'production') throw error;
     console.error(`Supabase ${label} failed, falling back to local JSON storage:`, error.message);
     return localFn();
   }

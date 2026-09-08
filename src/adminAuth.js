@@ -21,6 +21,7 @@ const timingSafeEqualStrings = (a, b) => {
 // admin route.
 const createAdminAuthGuard = ({ apiKey = config.adminApiKey } = {}) => (req, res, next) => {
   if (!apiKey) {
+    if (config.nodeEnv === 'production') return res.status(503).json({ error: 'Admin access is not configured.' });
     return next();
   }
 
