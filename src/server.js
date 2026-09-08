@@ -631,7 +631,12 @@ const createApp = () => {
 
 const startServer = () => {
   const app = createApp();
-  const server = app.listen(config.port, () => {
+  const server = app.listen(config.port, (error) => {
+    if (error) {
+      console.error(`Unable to start server: ${error.message}`);
+      process.exitCode = 1;
+      return;
+    }
     const schedule = startFollowUpScheduler();
     console.log(`Server running on port ${config.port}`);
     console.log(`Morning follow-up schedule: ${schedule} (${config.dealershipTimezone})`);
