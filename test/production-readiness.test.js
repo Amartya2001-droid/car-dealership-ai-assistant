@@ -69,7 +69,7 @@ test('production readiness reports local fallback gaps', () => {
   assert.ok(readiness.nextSteps.some((step) => step.includes('Twilio credentials')));
 });
 
-test('production readiness passes when required providers are configured', () => {
+test('production readiness passes when required providers are configured', (t) => {
   setEnv({
     DEALERSHIP_NAME: 'Northstar Auto Group',
     DEFAULT_PERSONA: 'concierge',
@@ -86,6 +86,8 @@ test('production readiness passes when required providers are configured', () =>
   });
   clearModules();
 
+  // This unit checks provider configuration; dashboard artifact detection has its own tests.
+  t.mock.method(require('../src/dashboardMeta'), 'getDashboardReadiness', () => ({ready:true}));
   const { buildProductionReadiness } = require('../src/productionReadiness');
   const readiness = buildProductionReadiness({ env: process.env, baseUrl: 'https://dealer.example.com' });
 
