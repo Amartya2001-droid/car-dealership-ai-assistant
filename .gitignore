@@ -25,3 +25,4 @@ android/build
 *.apk
 
 frontend/build-android
+.demo/

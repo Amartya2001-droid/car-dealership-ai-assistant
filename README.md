@@ -1,327 +1,87 @@
-# Northstar Auto — web and Android app
+<div align="center">
 
-This repository now includes a shopper showroom and protected dealership staff workspace backed by a shared API. Start with [the app setup guide](docs/APP-SETUP.md) for current installation, hosting, AI, voice, and Android instructions.
+# Northstar Auto
+### A car showroom for shoppers. A workspace for dealership teams.
 
-**Shopper:** inventory search and filters, shortlist, vehicle details and payment estimates, guided/live AI assistance, inquiries, test-drive requests, private status tracking and data deletion.
+Browse vehicles, request a test drive, and follow the same request through the staff workspace — with a real database behind both.
 
-**Staff:** sign-in, lead notes and status, appointment confirmation/cancellation/completion, inventory editing, CSV export and dealership settings.
+[![App checks](https://github.com/Amartya2001-droid/car-dealership-ai-assistant/actions/workflows/checks.yml/badge.svg)](https://github.com/Amartya2001-droid/car-dealership-ai-assistant/actions/workflows/checks.yml)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Amartya2001-droid/car-dealership-ai-assistant?ref=master)
 
-**Runtime:** React + existing CRA build, Node/SQLite locally, Cloudflare Worker/D1 when hosted, Capacitor Android (API 36). Run `npm test` for isolated tests, `npm run build` for the web/Worker build, and `APP_BACKEND_URL=https://your-public-backend npm run android:prepare` to prepare native assets. Use `docs/APP-SETUP.md` for signing and launch requirements.
+**[Try it](#try-it-in-your-browser)** · **[Take the demo tour](docs/TRY-IT.md)** · **[Setup & deployment](docs/APP-SETUP.md)** · **[Android release](docs/PLAY-RELEASE.md)**
 
-Live AI and telephone handling require your provider accounts. The supplied preview uses clearly labeled sample inventory and guided answers until configured. The commercial distribution is one dealership per deployment; there is no subscription billing or multi-tenant account system.
+</div>
 
----
+## Try it in your browser
 
-## Legacy backend documentation
+1. Click **Open in GitHub Codespaces** above and create your codespace. You need a GitHub account with Codespaces access; usage is subject to your account's allowance/billing.
+2. Wait for dependency installation and the first build to finish.
+3. In the terminal, run **`npm run demo`**.
+4. Open the **Northstar shopper + staff app** on port **3000** from the Ports panel. Your personal demo's staff email and password appear in the terminal.
 
-The notes below describe the original voice/demo endpoints. For the unified app, use the guide above. Legacy operations remain separate unless explicitly documented as migrated.
+No OpenAI, Twilio, database account, or secret keys are needed. Each codespace gets its own sample database and randomly generated staff password. Keep the forwarded port private and use sample details. Stop/delete the codespace when finished.
 
-# Car Dealership AI Assistant
+This launches a working full-stack app in your own environment. There is no shared public production demo yet. [GitHub's port-forwarding guide](https://docs.github.com/en/codespaces/developing-in-a-codespace/forwarding-ports-in-your-codespace) explains how to open the app.
 
-AI voice assistant for after-hours dealership calls. It answers inventory/service questions, captures leads, queues next-day follow-up messages, and supports Twilio voice integration.
+## Try it locally
 
-## Scope Through Day 3 (Completed)
-- Express server with Twilio Voice webhook endpoints.
-- Conversation logic with mood/topic/urgency detection.
-- Voice persona selector (`sales_pro`, `concierge`, `tech_expert`).
-- Vehicle matchmaker from caller-described preferences.
-- Supabase-first persistence for leads/follow-ups/appointments with automatic JSON fallback.
-- Morning dispatch scheduler for staff digest + customer follow-up SMS.
-- Knowledge base snapshot API + website sync script.
-- Test-drive scheduling with Google Calendar provider + mock fallback.
-- Lead lifecycle status tracking and appointment confirmation endpoints.
-- Callback window extraction for next-business-day outreach.
-- Virtual showroom brochure/walkaround links attached to matched vehicle leads.
-- Admin summary endpoint for triaging leads, appointments, and follow-up backlog.
-- Twilio webhook signature validation, an admin API key gate on lead/appointment/follow-up routes, a CORS origin allowlist, baseline security response headers, rate limiting on the public simulate-call endpoint, consistent JSON error handling, graceful shutdown, and structured request logging (see [Security & Production Hardening](#security--production-hardening)).
-
-## Quick Start (under 5 min)
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Configure environment:
-   ```bash
-   cp .env.example .env
-   ```
-   For production, start from `.env.production.example` and set real OpenAI, Twilio, Supabase, and public `BASE_URL` values.
-3. Start server:
-   ```bash
-   npm run dev
-   ```
-4. Simulate a call:
-   ```bash
-   curl -X POST http://localhost:3000/simulate/call \
-     -H "Content-Type: application/json" \
-     -d '{
-       "phone":"+19025551212",
-       "callerName":"Alex",
-       "message":"I need a small SUV under $40000 and want to book a test drive tomorrow",
-       "persona":"sales_pro",
-       "optInFollowUp":true
-     }'
-   ```
-
-5. Open the built-in monitoring dashboard:
-   ```bash
-   open http://localhost:3000/dashboard
-   ```
-
-6. Optional React dashboard preview:
-   ```bash
-   npm run dashboard:refresh
-   open http://localhost:3000/ops-dashboard/
-   ```
-   This rebuilds the dashboard bundle and verifies the backend-served preview route on the same origin as the API.
-   If the React production build stalls, the refresh script now generates a fallback `/ops-dashboard/` shell that redirects to the built-in `/dashboard` route so the preview path stays usable.
-
-7. Optional React dashboard workspace:
-   ```bash
-   npm run dashboard:install
-   cp frontend/.env.example frontend/.env
-   npm run dashboard:start
-   ```
-   This launches the separate React dev server on `http://localhost:3001` for frontend-only iteration.
-
-8. Optional one-command setup:
-   ```bash
-   bash scripts/setup.sh
-   ```
-
-9. Optional demo seed data:
-   ```bash
-   npm run seed:demo
-   ```
-   This creates demo leads plus related appointment/follow-up records.
-
-10. Optional full demo preparation:
-   ```bash
-   npm run demo:prepare
-   ```
-   This resets local demo data, reseeds leads/appointments/follow-ups, and prints the demo readiness report.
-
-11. Optional named demo scenario runner:
-   ```bash
-   npm run demo:scenario -- test-drive-booking
-   ```
-   Run without an argument to list the available scenario ids.
-
-12. Optional local smoke check:
-   ```bash
-   npm run smoke
-   ```
-
-13. Optional local summary snapshot:
-   ```bash
-   npm run summary
-   ```
-
-14. Optional lead export:
-   ```bash
-   npm run export:leads
-   ```
-
-15. Optional environment validation:
-    ```bash
-    npm run check:env
-    ```
-    For production gating, use:
-    ```bash
-    npm run check:production
-    ```
-    The same production gate is also available at `GET /admin/production-readiness`.
-    For a more operator-friendly snapshot with suggested actions, use:
-    ```bash
-    npm run print:production
-    ```
-
-16. Optional dashboard links snapshot:
-   ```bash
-   npm run dashboard:links
-   ```
-
-17. Optional dashboard readiness snapshot:
-   ```bash
-   npm run dashboard:status
-   ```
-
-18. Optional dashboard overview snapshot:
-   ```bash
-   npm run dashboard:overview
-   ```
-
-19. Optional demo readiness snapshot:
-   ```bash
-   npm run demo:ready
-   ```
-   The same payload is available at `GET /admin/demo-readiness` and is meant for deciding whether the final recorded walkthrough has dashboard access and demo lead data ready.
-
-20. Optional full demo overview snapshot:
-   ```bash
-   npm run demo:overview
-   ```
-   This combines readiness, production status, named scenarios, suggested commands, routes, and a recording flow checklist. The same payload is available at `GET /admin/demo-overview`.
-
-21. Optional recorded demo run sheet:
-   ```bash
-   npm run demo:run-sheet -- test-drive-booking
-   ```
-   This prints a scenario-specific presenter script, caller lines, proof points, dashboard routes, and the exact command to run during the recording. The same payload is available at `GET /admin/demo/run-sheet/:scenarioId`.
-
-22. Optional launch checklist snapshot:
-   ```bash
-   npm run launch:checklist
-   ```
-   This focuses on next-week rollout blockers, warnings, pilot status, missing production env keys, immediate actions, phase summaries, dependency-based next actions, and a simple completion score. The same payload is available at `GET /admin/launch-checklist`.
-
-## Daily GitHub Contribution Flow
-Run this once per day (or let automation run it) to guarantee a contribution commit:
+Install **Node.js 22.22 or newer** and Git, then:
 
 ```bash
-npm run contrib
+git clone https://github.com/Amartya2001-droid/car-dealership-ai-assistant.git
+cd car-dealership-ai-assistant
+npm ci
+npm run demo:setup
+npm run demo
 ```
 
-Optional note:
+Open **http://localhost:3000**. The terminal prints your demo staff login; retrieve it again with `npm run demo:credentials`. If port 3000 is in use, stop the other app or set the `PORT` environment variable before starting.
 
-```bash
-bash scripts/daily-contribution.sh "Implemented Day 2 calendar integration"
+Demo data is saved in the ignored `.demo/` folder and survives restarts. Demo mode uses guided answers and disables external AI, phone and calendar services even if you have configured them for another local deployment. Your regular `.env` and `data/` database are not overwritten. To start fresh, stop the demo and remove only `.demo/`, then start it again.
+
+## What you can try
+
+| Shopper showroom | Staff workspace |
+| --- | --- |
+| Search/filter vehicles by body type and budget | Add and edit vehicle listings |
+| Save a shortlist on your device | Review inquiries and record notes |
+| View details and illustrative payment estimates | Update lead stages and export CSV |
+| Ask the guided inventory assistant | Confirm, cancel or complete test drives |
+| Submit an inquiry or test-drive request | Configure dealership details and currency |
+| Track or delete a request using its private code | See shopper requests in the same database |
+
+**Suggested tour:** request a Toyota test drive → save the request code → sign in to Staff → confirm the request → return to My request and see the confirmation. [Full five-minute walkthrough →](docs/TRY-IT.md)
+
+## How it works
+
+```mermaid
+flowchart LR
+    Shopper[Shopper showroom] --> API[Shared API]
+    Staff[Protected staff workspace] --> API
+    Android[Android app] --> API
+    API --> DB[(SQLite locally / D1 hosted)]
+    API -. optional .-> AI[OpenAI]
+    Phone[Twilio phone intake] -. signed webhook .-> API
 ```
 
-Behavior:
-- Appends a timestamp entry to `docs/progress/heartbeat.log`.
-- Creates a dated commit (`chore: daily progress YYYY-MM-DD`).
-- Pushes to `origin/<current-branch>` if a GitHub remote is configured.
-- If no remote is configured, it prints the exact `git remote add origin ...` command needed.
+React web interface • Node/Express with SQLite • Worker/D1 deployment option • Capacitor Android targeting API 36.
 
-## Twilio Integration
-1. Buy/configure a Twilio phone number with Voice.
-2. Point Voice webhook to:
-   - `POST /webhooks/twilio/voice`
-3. Set Twilio credentials in `.env`:
-   - `TWILIO_ACCOUNT_SID`
-   - `TWILIO_AUTH_TOKEN`
-   - `TWILIO_PHONE_NUMBER`
+`npm test` runs isolated backend tests. GitHub Actions builds the interface and exercises the demo's inventory, authentication, inquiry, tracking and deletion flow. The Android source is included; [build and signing instructions](docs/PLAY-RELEASE.md) explain how to connect it to your own public backend.
 
-Once `TWILIO_AUTH_TOKEN` is set, incoming voice webhook requests are
-validated against Twilio's request signature automatically (a request
-without a valid `X-Twilio-Signature` header is rejected with 403). Set
-`TWILIO_VALIDATE_WEBHOOKS=false` to disable this if needed.
+## Current release scope
 
-The app works in mock mode without Twilio/OpenAI keys (`USE_MOCK_AI=true`).
-Before a real pilot, set `USE_MOCK_AI=false`, configure Twilio credentials, and run `DEPLOYMENT_URL=https://your-public-url npm run verify:production-url`.
+- One dealership per deployment and one configured staff owner login.
+- Four clearly labeled sample vehicles; replace these with verified inventory before launch.
+- Guided assistant works immediately. Live AI and signed phone intake need your own provider accounts.
+- Request codes are shown in the app; automatic confirmation emails/SMS are not implemented in the new workspace.
+- No subscription billing, multiple staff accounts, multi-dealership tenancy or shopper accounts.
+- Android builds have passed compilation and lint, but physical-device testing and Play submission remain to be completed. Existing test bundles need a live backend before phone workflows work.
 
-## API Endpoints
-- `GET /` (marketing landing page — see [Design & Theming](#design--theming))
-- `GET /dashboard`
-- `GET /health`
-- `GET /config/personas`
-- `GET /admin/runtime`
-- `GET /admin/dashboard-overview`
-- `GET /admin/production-readiness`
-- `GET /admin/demo-readiness`
-- `GET /admin/demo-overview`
-- `GET /admin/demo-scenarios`
-- `GET /admin/demo/run-sheet/:scenarioId`
-- `GET /admin/launch-checklist`
-- `POST /admin/demo/reset` 🔒
-- `POST /admin/demo/seed` 🔒
-- `POST /admin/demo/scenarios/:scenarioId/run` 🔒
-- `POST /webhooks/twilio/voice` (Twilio signature required once `TWILIO_AUTH_TOKEN` is set)
-- `POST /webhooks/twilio/voice/collect` (same)
-- `POST /simulate/call` (rate limited — see [Security & Production Hardening](#security--production-hardening))
-- `GET /admin/leads` 🔒
-- `GET /admin/followups` 🔒
-- `GET /admin/appointments` 🔒
-- `GET /admin/summary`
-- `POST /admin/test-drives/schedule` 🔒
-- `POST /admin/test-drives/:appointmentId/confirm` 🔒
-- `POST /admin/leads/:leadId/callback-window` 🔒
-- `POST /admin/run-followups` 🔒
-- `POST /admin/knowledge/snapshot` 🔒
+## Explore the project
 
-🔒 = requires the `x-admin-api-key` header (or `?api_key=`) once `ADMIN_API_KEY` is set; unauthenticated when it is not.
+- [Run, configure and deploy](docs/APP-SETUP.md)
+- [Google Play release requirements](docs/PLAY-RELEASE.md)
+- [Original voice/backend documentation](docs/LEGACY-BACKEND.md)
+- [Report a bug or suggest an improvement](https://github.com/Amartya2001-droid/car-dealership-ai-assistant/issues)
 
-## Data Files
-- `data/leads.json`
-- `data/followups.json`
-- `data/knowledge-base.json`
-- `data/appointments.json`
-
-## Dashboard
-The monitoring UI at `/dashboard` shows:
-- lead volume and callback demand
-- recent leads with intent and callback preference
-- recent appointments and follow-up queue
-- a demo/production operations panel with recording flow, scenario routes, and readiness blockers
-- topic, status, and urgency breakdowns
-- lead search plus topic and status filters
-- runtime storage/default-persona visibility
-- an attention queue for urgent or callback-heavy leads
-- manual refresh controls and a last-updated stamp
-- direct quick links to the main admin JSON endpoints
-- launch-checklist visibility for next-week production prep
-- showroom brochure and walkaround links inside lead cards
-- a light/dark theme toggle (persisted per browser; see [Design & Theming](#design--theming))
-
-The imported React dashboard workspace lives in [`frontend`](./frontend). Use `/ops-dashboard/` for the stable backend-served preview and `npm run dashboard:start` for separate frontend iteration.
-For quick route discovery, use `GET /admin/dashboard-links`, `GET /admin/dashboard-status`, or `npm run dashboard:links`.
-For one combined payload covering route selection and build availability, use `GET /admin/dashboard-readiness` or `npm run dashboard:status`.
-For one combined payload covering summary, runtime, health, and readiness, use `GET /admin/dashboard-overview` or `npm run dashboard:overview`.
-For demo-operator control and walkthrough prep, use `GET /admin/demo-overview` or `npm run demo:overview`.
-For the final recorded walkthrough, use `GET /admin/demo/run-sheet/test-drive-booking` or `npm run demo:run-sheet -- test-drive-booking`.
-For a go-live blocker list tied to next week’s rollout, use `GET /admin/launch-checklist` or `npm run launch:checklist`.
-The launch checklist now groups blockers into `today`, `beforeDemo`, `thisWeek`, and `beforePilot`, and surfaces the top immediate actions, dependency-based next-action plan, phase summaries, completion score, workstream breakdown, and a short rollout narrative directly in the operator dashboard.
-
-For an AI-generated redesign/prototype workflow, see [`docs/emergent-dashboard-prompt.md`](./docs/emergent-dashboard-prompt.md).
-
-## Design & Theming
-The built-in dashboard, the React dashboard, and the landing page at `/` all
-share one brand token system (colors, fonts, radii) instead of maintaining
-their own look independently:
-
-- **Light theme** ("Heritage Refined") — warm cream background, forest green
-  and terracotta accents, Source Serif 4 + Manrope. This is the existing
-  Northstar palette, refined rather than replaced.
-- **Dark theme** ("Night Operations") — a near-black console background with
-  amber/teal accents, leaning into the "after-hours" framing. Every surface
-  picks a theme from `localStorage` (falling back to the browser's
-  `prefers-color-scheme`) via a toggle in the header of all three pages; the
-  built-in dashboard and landing page share the same `localStorage` key, so
-  the preference carries across pages on the same origin.
-- **Landing page** (`GET /`) — a marketing page for the after-hours AI
-  concierge product itself, aimed at dealerships evaluating it: a one-line
-  hero with a live-demo call to action, a three-step "how it works," and
-  benefit copy grounded in what the product actually does (no fabricated
-  testimonials or metrics).
-
-The token source of truth is `public/dashboard.css`'s `:root` (light) and
-`[data-theme="dark"]` blocks; `frontend/src/index.css` mirrors the same
-colors as shadcn-style HSL custom properties for the React app.
-
-## Runtime Status
-Use `GET /admin/runtime` or `npm run check:env` to inspect requested provider, active provider, and whether Supabase credentials are present.
-For Supabase schema/environment setup, see [`docs/supabase-setup.md`](./docs/supabase-setup.md).
-
-## Security & Production Hardening
-- **Twilio webhook signature validation** — automatic once `TWILIO_AUTH_TOKEN` is set; disable with `TWILIO_VALIDATE_WEBHOOKS=false`.
-- **Admin API key** — set `ADMIN_API_KEY` to require the `x-admin-api-key` header (or `?api_key=` query param, for plain links) on lead/appointment/follow-up admin routes. Unconfigured by default so local/demo use needs no setup; the built-in dashboard forwards the key from its own `?api_key=` URL param, and the React dashboard reads it from `REACT_APP_ADMIN_API_KEY` at build time.
-- **CORS allowlist** — set `ALLOWED_ORIGINS` (comma-separated) to restrict which browser origins can call the API; unset reflects any origin, matching the previous open behavior.
-- **Rate limiting** — the public `/simulate/call` endpoint is limited via `RATE_LIMIT_WINDOW_MS`/`RATE_LIMIT_MAX` (defaults: 20 requests per 60s per IP) to bound OpenAI/storage cost from an open loop. The Twilio webhook is intentionally excluded since it's already signature-protected and Twilio proxies calls from shared IPs.
-- **Security response headers** — `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and HSTS on HTTPS requests, applied to every response.
-- **Consistent error handling** — unhandled route errors and unknown paths return JSON (not Express's default HTML page); set `EXPOSE_ERROR_DETAILS=true` to include message/stack (on by default outside `NODE_ENV=production`).
-- **Graceful shutdown** — the server closes its HTTP listener cleanly on `SIGTERM`/`SIGINT` (with a 10s hard-exit fallback), so container platforms can redeploy without dropping in-flight requests.
-- **Structured request logging** — one JSON line per request (method, path, status, duration, ip) to stdout; query strings are deliberately excluded so `?api_key=...` never reaches the logs.
-- **Supabase fallback visibility** — a failed Supabase call is now logged (which operation, and why) before falling back to local JSON, since that fallback is otherwise silent and most hosts wipe local storage on redeploy.
-
-## Next Planned Milestones
-- Day 4: OpenAI voice enhancements + stronger sentiment adaptation.
-- Day 5: Follow-up personalization and multilingual templates.
-- Day 6: Deployment hardening, observability, and CI checks.
-- Day 7: Demo recording and final documentation polish.
-
-## Calendar Integration
-Scheduling supports two modes:
-- `mock_calendar` (default): writes appointment records locally.
-- `google_calendar`: set `GOOGLE_CALENDAR_ID` and `GOOGLE_ACCESS_TOKEN` in `.env`.
-
-See daily logs in [`docs/progress/`](docs/progress).
+When reporting bugs, include the steps and expected behavior, but never passwords, request codes, API keys, or customer information.

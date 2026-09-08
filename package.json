@@ -38,7 +38,10 @@
     "build:site": "node scripts/build-site.mjs",
     "seed:app": "node scripts/seed-app.mjs",
     "db:generate": "drizzle-kit generate",
-    "android:prepare": "node scripts/build-android.mjs"
+    "android:prepare": "node scripts/build-android.mjs",
+    "demo:setup": "node scripts/demo.mjs setup",
+    "demo": "node scripts/demo.mjs start",
+    "demo:credentials": "node scripts/demo.mjs credentials"
   },
   "keywords": [],
   "author": "",

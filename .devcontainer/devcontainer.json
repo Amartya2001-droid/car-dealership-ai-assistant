@@ -1,0 +1,9 @@
+{
+  "name": "Northstar app demo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [3000],
+  "portsAttributes": {"3000": {"label": "Northstar shopper + staff app", "onAutoForward": "openBrowser"}},
+  "postCreateCommand": "npm ci && npm run demo:setup",
+  "waitFor": "postCreateCommand",
+  "customizations": {"vscode": {"settings": {"workbench.startupEditor": "readme"}}}
+}
