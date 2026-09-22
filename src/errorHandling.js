@@ -1,7 +1,8 @@
 const config = require('./config');
+const requestPath = (req) => (req.originalUrl || '').split('?')[0];
 
 const createNotFoundHandler = () => (req, res) => {
-  res.status(404).json({ error: 'Not found', path: req.originalUrl });
+  res.status(404).json({ error: 'Not found', path: requestPath(req) });
 };
 
 const createErrorHandler = ({ exposeDetails = config.exposeErrorDetails } = {}) => (err, req, res, next) => {
@@ -9,9 +10,8 @@ const createErrorHandler = ({ exposeDetails = config.exposeErrorDetails } = {}) 
     return next(err);
   }
 
-  console.error(`Unhandled error on ${req.method} ${req.originalUrl}:`, err);
-
-  const status = Number.isInteger(err.status) ? err.status : 500;
+  const status = Number.isInteger(err.status) && err.status >= 400 && err.status <= 599 ? err.status : 500;
+  console.error(`Request failed: ${req.method} ${requestPath(req)} (${status})`);
   const body = { error: err.expose ? err.message : 'Internal server error' };
 
   if (exposeDetails) {

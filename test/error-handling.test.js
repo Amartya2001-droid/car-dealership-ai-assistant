@@ -17,6 +17,29 @@ const makeRes = () => ({
   }
 });
 
+test('error output excludes query credentials and private exception details', (t) => {
+  const logs = [];
+  t.mock.method(console, 'error', (...args) => logs.push(args.join(' ')));
+  const req = { method: 'GET', originalUrl: '/missing?token=private-token' };
+  const res = makeRes();
+  createNotFoundHandler()(req, res);
+  assert.equal(res.body.path, '/missing');
+  createErrorHandler({ exposeDetails: false })(new Error('private-token'), req, res, () => {});
+  assert.equal(logs.length, 1);
+  assert.ok(!logs[0].includes('private-token'));
+  assert.ok(!JSON.stringify(res.body).includes('private-token'));
+});
+
+test('invalid error status codes fall back to 500', (t) => {
+  t.mock.method(console, 'error', () => {});
+  for (const status of [200, 399, 600, 999, '400', NaN]) {
+    const res = makeRes();
+    createErrorHandler({ exposeDetails: false })(Object.assign(new Error('bad'), { status }),
+      { method: 'GET', originalUrl: '/' }, res, () => {});
+    assert.equal(res.statusCode, 500);
+  }
+});
+
 test('notFoundHandler responds with 404 and the requested path', () => {
   const handler = createNotFoundHandler();
   const res = makeRes();
