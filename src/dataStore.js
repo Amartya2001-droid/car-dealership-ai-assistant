@@ -50,6 +50,7 @@ const supabaseRequest = async ({ table, method = 'GET', query = '', body }) => {
   const url = `${base}/rest/v1/${table}${query}`;
 
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(10000),
     method,
     headers: buildHeaders(),
     body: body === undefined ? undefined : JSON.stringify(body)
