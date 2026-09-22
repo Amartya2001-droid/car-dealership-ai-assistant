@@ -22,10 +22,14 @@ const isValidTwilioSignature = ({ authToken, signature, url, params }) => {
 const createTwilioWebhookGuard = ({
   authToken = config.twilio.authToken,
   baseUrl = config.baseUrl,
-  enabled = config.validateTwilioWebhooks
+  enabled = config.validateTwilioWebhooks,
+  nodeEnv = config.nodeEnv
 } = {}) => {
   return (req, res, next) => {
     if (!enabled || !authToken) {
+      if (nodeEnv === 'production') {
+        return res.status(503).json({ error: 'Voice webhook validation is not configured.' });
+      }
       return next();
     }
 

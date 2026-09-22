@@ -12,6 +12,16 @@ const {
 const AUTH_TOKEN = 'test-auth-token';
 const WEBHOOK_URL = 'https://dealer.example.com/webhooks/twilio/voice';
 
+test('production voice webhooks fail closed when security is unavailable', () => {
+  for (const options of [{ authToken: '', enabled: true }, { authToken: AUTH_TOKEN, enabled: false }]) {
+    const res = makeRes();
+    let called = false;
+    createTwilioWebhookGuard({ ...options, nodeEnv: 'production' })({}, res, () => { called = true; });
+    assert.equal(res.statusCode, 503);
+    assert.equal(called, false);
+  }
+});
+
 const makeRes = () => ({
   statusCode: 200,
   body: null,
