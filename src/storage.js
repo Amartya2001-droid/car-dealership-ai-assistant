@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { randomUUID } = require('node:crypto');
 const config = require('./config');
 
 const ensureDir = (dirPath) => {
@@ -21,7 +22,15 @@ const readJson = (filePath, defaultValue) => {
 };
 
 const writeJson = (filePath, data) => {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  const serialized = JSON.stringify(data, null, 2);
+  const temporary = `${filePath}.${randomUUID()}.tmp`;
+  try {
+    // Rename within the same directory so readers see either complete version.
+    fs.writeFileSync(temporary, serialized, { flag: 'wx', mode: 0o600 });
+    fs.renameSync(temporary, filePath);
+  } finally {
+    fs.rmSync(temporary, { force: true });
+  }
 };
 
 ensureDir(config.dataDir);
