@@ -41,6 +41,9 @@ const buildNextSteps = ({ missingProduction, storage, dashboard, integrations })
   if (hasAny(REQUIRED_TWILIO, missingProduction)) {
     nextSteps.push('Add Twilio credentials and point the phone number webhook to /webhooks/twilio/voice.');
   }
+  if (integrations.twilioWebhookSecurity !== 'enforced') {
+    nextSteps.push('Enable TWILIO_VALIDATE_WEBHOOKS with a Twilio auth token before accepting production calls.');
+  }
 
   if (hasAny(REQUIRED_ADMIN, missingProduction)) {
     nextSteps.push(
@@ -86,9 +89,10 @@ const buildProductionReadiness = ({ env = process.env, baseUrl = config.baseUrl 
   const storage = getPersistenceStatus();
   const dashboard = getDashboardReadiness(baseUrl);
   const localRunnable = Boolean(config.dealershipName && config.defaultPersona && config.storageProvider);
-  const productionReady =
-    missingProduction.length === 0 && storage.activeProvider === 'supabase' && !config.useMockAi && dashboard.ready;
   const integrations = getIntegrationStatus();
+  const productionReady =
+    missingProduction.length === 0 && storage.activeProvider === 'supabase' && !config.useMockAi && dashboard.ready &&
+    integrations.twilioWebhookSecurity === 'enforced';
 
   return {
     ok: productionReady,

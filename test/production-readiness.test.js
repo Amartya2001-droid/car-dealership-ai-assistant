@@ -100,6 +100,12 @@ test('production readiness passes when required providers are configured', (t) =
   assert.equal(readiness.storage.activeProvider, 'supabase');
   assert.equal(readiness.missingProduction.length, 0);
   assert.ok(readiness.nextSteps.some((step) => step.includes('verify:production-url')));
+
+  require('../src/config').validateTwilioWebhooks = false;
+  const unsafe = buildProductionReadiness();
+  assert.equal(unsafe.productionReady, false);
+  assert.equal(unsafe.ok, false);
+  assert.ok(unsafe.nextSteps.some((step) => step.includes('Enable TWILIO_VALIDATE_WEBHOOKS')));
 });
 
 test('production readiness flags missing ADMIN_API_KEY as a production blocker', () => {
