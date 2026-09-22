@@ -1,8 +1,22 @@
 const validateSimulatedCall = (payload = {}) => {
   const errors = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { valid: false, errors: ['payload must be an object'] };
+  }
 
-  if (!payload.phone) errors.push('phone is required');
-  if (!payload.message) errors.push('message is required');
+  if (typeof payload.phone !== 'string' || !/^\+[1-9]\d{7,14}$/.test(payload.phone)) {
+    errors.push('phone must be an international number such as +19025550123');
+  }
+  if (typeof payload.message !== 'string' || !payload.message.trim() || payload.message.length > 5000) {
+    errors.push('message must contain 1 to 5000 characters');
+  }
+  if (payload.callerName !== undefined && payload.callerName !== null &&
+      (typeof payload.callerName !== 'string' || payload.callerName.length > 200)) {
+    errors.push('callerName must be a string of at most 200 characters');
+  }
+  if (payload.optInFollowUp !== undefined && typeof payload.optInFollowUp !== 'boolean') {
+    errors.push('optInFollowUp must be a boolean');
+  }
 
   if (payload.persona && !['sales_pro', 'concierge', 'tech_expert'].includes(payload.persona)) {
     errors.push('persona must be one of sales_pro, concierge, tech_expert');

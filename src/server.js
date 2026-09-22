@@ -452,7 +452,7 @@ const createApp = () => {
   app.post('/simulate/call', simulateCallRateLimiter, async (req, res) => {
     const { phone, callerName, message, persona = config.defaultPersona, optInFollowUp = false } = req.body;
 
-    const validation = validateSimulatedCall({ phone, message, persona });
+    const validation = validateSimulatedCall({ phone, message, persona, callerName, optInFollowUp });
     if (!validation.valid) {
       return res.status(400).json({ error: validation.errors.join(', ') });
     }
