@@ -29,7 +29,7 @@ const findVehicleMatches = (preferences = {}) => {
 
 const parsePreferences = (freeText = '') => {
   const text = freeText.toLowerCase();
-  const maxPriceMatch = text.match(/under\s*\$?([0-9]{2,6})/i);
+  const maxPriceMatch = text.match(/\bunder\s*\$?((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(k)?\b(?![\d,.])/i);
 
   let bodyType = null;
   if (text.includes('suv')) bodyType = 'SUV';
@@ -37,13 +37,17 @@ const parsePreferences = (freeText = '') => {
   if (text.includes('truck')) bodyType = 'Truck';
 
   let fuelType = null;
-  if (text.includes('hybrid')) fuelType = 'Hybrid';
-  if (text.includes('electric') || text.includes('ev')) fuelType = 'Electric';
+  if (/\bhybrid\b/.test(text)) fuelType = 'Hybrid';
+  else if (/\b(electric|ev)\b/.test(text)) fuelType = 'Electric';
+
+  const budget = maxPriceMatch
+    ? Number(maxPriceMatch[1].replace(/,/g, '')) * (maxPriceMatch[2] ? 1000 : 1)
+    : null;
 
   return {
     bodyType,
     fuelType,
-    maxPrice: maxPriceMatch ? Number(maxPriceMatch[1]) : null
+    maxPrice: Number.isFinite(budget) && budget > 0 ? budget : null
   };
 };
 
