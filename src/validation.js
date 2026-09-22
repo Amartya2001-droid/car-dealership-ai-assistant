@@ -30,6 +30,9 @@ const validateSimulatedCall = (payload = {}) => {
 
 const validateCallbackWindow = (payload = {}) => {
   const errors = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { valid: false, errors: ['payload must be an object'] };
+  }
   const allowedLabels = ['morning', 'afternoon', 'evening'];
 
   if (!payload.label) errors.push('label is required');
@@ -44,8 +47,11 @@ const validateCallbackWindow = (payload = {}) => {
     const startHour = Number(payload.startHour);
     const endHour = Number(payload.endHour);
 
-    if (Number.isNaN(startHour) || Number.isNaN(endHour)) {
-      errors.push('startHour and endHour must be numbers');
+    const isHour = (value) =>
+      (typeof value === 'number' || (typeof value === 'string' && /^\d{1,2}$/.test(value))) &&
+      Number.isInteger(Number(value));
+    if (!isHour(payload.startHour) || !isHour(payload.endHour)) {
+      errors.push('startHour and endHour must be whole hours');
     } else if (startHour < 0 || endHour > 23 || startHour >= endHour) {
       errors.push('startHour and endHour must form a valid hour range');
     }
