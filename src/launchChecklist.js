@@ -419,7 +419,6 @@ const buildLaunchChecklist = ({
   };
   const areaSummary = buildAreaSummary(sortedBlockers);
   const readyForDemo = Boolean(readiness.ready);
-  const readyForPilot = readyForDemo && Boolean(production.localRunnable) && Boolean(production.dashboard?.ready);
   const readyForProduction = Boolean(production.productionReady);
   const gates = {
     demo: [
@@ -492,6 +491,7 @@ const buildLaunchChecklist = ({
       })
     ]
   };
+  const readyForPilot = readyForDemo && gates.pilot.every((gate) => gate.passed);
   const gateSummary = {
     demo: {
       passed: gates.demo.filter((item) => item.passed).length,

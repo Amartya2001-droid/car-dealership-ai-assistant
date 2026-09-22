@@ -3,6 +3,26 @@ const assert = require('node:assert/strict');
 
 const { buildLaunchChecklist } = require('../src/launchChecklist');
 
+test('pilot readiness requires every pilot gate even when the demo is ready', () => {
+  for (const integrations of [
+    { twilio: 'missing', adminAuth: 'enforced' },
+    { twilio: 'configured', adminAuth: 'unconfigured' }
+  ]) {
+    const checklist = buildLaunchChecklist({
+      production: {
+        localRunnable: true, productionReady: false, missingProduction: [], warnings: [],
+        dashboard: { ready: true }, storage: { activeProvider: 'local_json' },
+        integrations: { openai: 'mock', ...integrations }
+      },
+      readiness: { ready: true, checks: { hasDemoData: true, dashboardReady: true } },
+      routes: {}, commands: {}
+    });
+    assert.equal(checklist.readyForDemo, true);
+    assert.equal(checklist.readyForPilot, false);
+    assert.ok(checklist.gateSummary.pilot.passed < checklist.gateSummary.pilot.total);
+  }
+});
+
 test('buildLaunchChecklist reports blocked production items and demo warnings', () => {
   const checklist = buildLaunchChecklist({
     production: {
