@@ -105,12 +105,9 @@ const scheduleTestDrive = async (lead) => {
     });
   }
 
+  let providerDetails;
   try {
-    const providerDetails = await scheduleWithGoogle({ lead, startAt: scheduledFor });
-    return await appendAppointment({
-      ...baseRecord,
-      ...providerDetails
-    });
+    providerDetails = await scheduleWithGoogle({ lead, startAt: scheduledFor });
   } catch (error) {
     return await appendAppointment({
       ...baseRecord,
@@ -121,6 +118,8 @@ const scheduleTestDrive = async (lead) => {
       providerError: error.message
     });
   }
+  // A storage failure must not disguise a successfully created calendar event.
+  return await appendAppointment({ ...baseRecord, ...providerDetails });
 };
 
 module.exports = {
