@@ -12,6 +12,14 @@ const REQUIRED_ADMIN = ['ADMIN_API_KEY'];
 
 const missingFromEnv = (names, env) => names.filter((name) => !env[name]);
 const hasAny = (names, values) => names.some((name) => values.includes(name));
+const isSecureDeploymentUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password && !url.search && !url.hash;
+  } catch {
+    return false;
+  }
+};
 
 const getIntegrationStatus = () => ({
   openai: config.useMockAi ? 'mock' : config.openaiApiKey ? 'configured' : 'missing',
@@ -21,8 +29,11 @@ const getIntegrationStatus = () => ({
   googleCalendar: config.googleCalendar.calendarId && config.googleCalendar.accessToken ? 'configured' : 'disabled'
 });
 
-const buildNextSteps = ({ missingProduction, storage, dashboard, integrations }) => {
+const buildNextSteps = ({ missingProduction, storage, dashboard, integrations, deploymentUrlValid }) => {
   const nextSteps = [];
+  if (!deploymentUrlValid) {
+    nextSteps.push('Set BASE_URL to an HTTPS deployment URL without embedded credentials, query parameters, or fragments.');
+  }
 
   if (hasAny(REQUIRED_BASE, missingProduction)) {
     nextSteps.push('Populate the base production environment values from .env.production.example.');
@@ -69,6 +80,8 @@ const buildProductionReadiness = ({ env = process.env, baseUrl = config.baseUrl 
   ];
 
   const warnings = [];
+  const deploymentUrlValid = isSecureDeploymentUrl(baseUrl);
+  if (!deploymentUrlValid) warnings.push('BASE_URL is not a safe HTTPS deployment URL.');
 
   if (!config.useMockAi) {
     missingProduction.push(...missingFromEnv(REQUIRED_OPENAI, env));
@@ -92,18 +105,19 @@ const buildProductionReadiness = ({ env = process.env, baseUrl = config.baseUrl 
   const integrations = getIntegrationStatus();
   const productionReady =
     missingProduction.length === 0 && storage.activeProvider === 'supabase' && !config.useMockAi && dashboard.ready &&
-    integrations.twilioWebhookSecurity === 'enforced';
+    integrations.twilioWebhookSecurity === 'enforced' && deploymentUrlValid;
 
   return {
     ok: productionReady,
     localRunnable,
     productionReady,
+    deploymentUrlValid,
     storage,
     dashboard,
     integrations,
     missingProduction,
     warnings,
-    nextSteps: buildNextSteps({ missingProduction, storage, dashboard, integrations }),
+    nextSteps: buildNextSteps({ missingProduction, storage, dashboard, integrations, deploymentUrlValid }),
     generatedAt: new Date().toISOString()
   };
 };

@@ -101,6 +101,14 @@ test('production readiness passes when required providers are configured', (t) =
   assert.equal(readiness.missingProduction.length, 0);
   assert.ok(readiness.nextSteps.some((step) => step.includes('verify:production-url')));
 
+  for (const baseUrl of ['http://dealer.example.com', 'not-a-url', 'https://user:secret@dealer.example.com',
+    'https://dealer.example.com?token=secret', 'https://dealer.example.com#fragment']) {
+    const invalid = buildProductionReadiness({ baseUrl });
+    assert.equal(invalid.productionReady, false);
+    assert.equal(invalid.deploymentUrlValid, false);
+    assert.ok(invalid.nextSteps.some((step) => step.includes('HTTPS deployment URL')));
+  }
+
   require('../src/config').validateTwilioWebhooks = false;
   const unsafe = buildProductionReadiness();
   assert.equal(unsafe.productionReady, false);
