@@ -84,3 +84,16 @@ test('local_json storage never calls fetch', async () => {
 
   assert.equal(fetchCalled, false);
 });
+
+test('production cannot silently use local storage when Supabase credentials are missing', async (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dealership-missing-config-'));
+  t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
+  setEnv({ STORAGE_PROVIDER: 'supabase', SUPABASE_URL: '', SUPABASE_ANON_KEY: '', DATA_DIR: tempDir });
+  clearModules();
+  const config = require('../src/config');
+  config.nodeEnv = 'production';
+  const store = require('../src/dataStore');
+  await assert.rejects(store.appendLead({ id: 'must-not-save' }), /credentials are missing/);
+  await assert.rejects(store.listLeads(), /credentials are missing/);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(tempDir, 'leads.json'), 'utf8')), []);
+});

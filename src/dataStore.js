@@ -131,6 +131,9 @@ const updateInSupabase = async (table, id, updates = {}) => {
 // captured until someone happens to notice. Always log it.
 const withFallback = async (label, remoteFn, localFn) => {
   if (!canUseSupabase()) {
+    if (config.nodeEnv === 'production' && config.storageProvider === 'supabase') {
+      throw new Error('Supabase persistence is selected but credentials are missing.');
+    }
     return localFn();
   }
 
