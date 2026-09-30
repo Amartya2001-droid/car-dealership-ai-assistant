@@ -12,9 +12,9 @@ dayjs.extend(timezone);
 const canUseGoogleCalendar = () =>
   Boolean(config.googleCalendar.calendarId && config.googleCalendar.accessToken);
 
-const parsePreferredDateTime = (inquiry = '') => {
+const parsePreferredDateTime = (inquiry = '', referenceTime = new Date()) => {
   const text = inquiry.toLowerCase();
-  const now = dayjs().tz(config.dealershipTimezone);
+  const now = dayjs(referenceTime).tz(config.dealershipTimezone);
 
   let date = now;
   if (text.includes('tomorrow')) {
@@ -35,7 +35,13 @@ const parsePreferredDateTime = (inquiry = '') => {
     if (meridiem === 'am' && hour === 12) hour = 0;
   }
 
-  return date.hour(hour).minute(minute).second(0).millisecond(0).toISOString();
+  let candidate = date.hour(hour).minute(minute).second(0).millisecond(0);
+  if (!candidate.isAfter(now)) {
+    candidate = candidate.add(1, 'day');
+    // Reconstruct in the dealership timezone to apply tomorrow's DST offset.
+    candidate = dayjs.tz(candidate.format('YYYY-MM-DD HH:mm'), config.dealershipTimezone);
+  }
+  return candidate.toISOString();
 };
 
 const scheduleWithGoogle = async ({ lead, startAt }) => {
