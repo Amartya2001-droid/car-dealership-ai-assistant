@@ -73,8 +73,8 @@ const scheduleWithGoogle = async ({ lead, startAt }) => {
   );
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Google Calendar API error ${response.status}: ${body}`);
+    await response.body?.cancel();
+    throw new Error(`Google Calendar API error ${response.status}`);
   }
 
   const event = await response.json();

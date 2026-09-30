@@ -57,8 +57,8 @@ const supabaseRequest = async ({ table, method = 'GET', query = '', body }) => {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Supabase ${method} ${table} failed (${response.status}): ${errorBody.slice(0, 200)}`);
+    await response.body?.cancel();
+    throw new Error(`Supabase ${method} failed (${response.status})`);
   }
 
   if (response.status === 204) {
