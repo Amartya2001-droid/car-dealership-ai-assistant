@@ -7,7 +7,7 @@ Start the demo using the Codespaces button or local instructions in the [README]
 3. **Ask for help.** Open the assistant and ask “Which SUVs are under $40,000?” Guided answers use the sample inventory; no AI account is required.
 4. **Request a test drive.** Choose one of the open times shown for your chosen day (by default, weekdays 9 am–6 pm dealership time). Enter a sample name, an email such as `visitor@example.test`, and a message. Submit and save the private request code shown on the receipt. No email is sent.
 5. **Become the staff member.** Click Staff workspace. Use the email and random password printed by `npm run demo` (or retrieve them with `npm run demo:credentials`). Open Leads, inspect the request, and add a note.
-6. **Confirm it.** In Test drives, confirm the requested appointment. Then return to the showroom, open My request, and paste the request code. The confirmation is now visible to the shopper.
+6. **Confirm it.** In Test drives, confirm the requested appointment. Then return to the showroom, open My request, and paste the request code. The confirmation is now visible to the shopper. Try **Change time** to pick a new slot (it returns to “Awaiting confirmation” for staff) or **Cancel test drive**.
 7. **Explore operations.** Add a sample vehicle in Inventory, edit its price, export the leads, and inspect Settings. Staff changes persist when you restart your demo.
 8. **Clean up.** Use My request to delete your sample inquiry and linked appointment. Sign out of Staff when finished. Stop the server with Ctrl+C and stop/delete your codespace if applicable.
 

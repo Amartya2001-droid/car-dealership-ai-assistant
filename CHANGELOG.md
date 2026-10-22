@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 (Shopper Reschedule & Cancel)
+- Added `POST /api/request/reschedule` and `POST /api/request/cancel`, so shoppers can move or cancel an upcoming test drive with their private request code. A rescheduled booking returns to `requested` and needs staff to confirm it again; the previous time is kept for staff (`previousScheduledFor`, `rescheduledAt`, `rescheduleCount`), and shopper cancellations are marked `cancelledBy: "shopper"`.
+- Changes are guarded against concurrent staff updates and slot races (409 instead of overwriting), limited to requested/confirmed test drives that have not started, and validated against the same booking rules as new requests.
+- `POST /api/request/status` now lists appointments in time order with a `changeable` flag.
+- The booking form and "My request" now use a slot picker backed by `GET /api/availability`, showing open times in the dealership's time zone; the staff test-drive list notes shopper reschedules and cancellations.
+
 ## 2026-10-22 (Test-Drive Availability)
 - Added `GET /api/availability?date=YYYY-MM-DD`, returning the day's 30-minute test-drive slots in the dealership's time zone with each slot marked available or taken (no shopper details are exposed).
 - Added configurable weekly test-drive hours (`testDriveHours` in dealership settings, defaulting to Monday–Friday 9:00–18:00), editable through `PATCH /api/admin/settings` and published through `GET /api/config`.

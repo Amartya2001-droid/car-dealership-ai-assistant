@@ -978,6 +978,54 @@ td small {
   border-top: 1px solid var(--line);
   padding-top: 20px;
 }
+.tracking-appointment {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.tracking-appointment > p:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tracking-appointment .row-actions {
+  margin-top: 10px;
+}
+.slot-picker {
+  margin-bottom: 6px;
+}
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+.slot-grid button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 6px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.slot-grid button:hover:not(:disabled) {
+  border-color: var(--green);
+}
+.slot-grid button.selected {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 600;
+}
+.slot-grid button:disabled {
+  color: var(--muted);
+  background: #f2f4f2;
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 .notice {
   background: #f5edc9;
   padding: 10px 20px;

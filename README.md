@@ -48,7 +48,7 @@ Demo data is saved in the ignored `.demo/` folder and survives restarts. Demo mo
 | View details and illustrative payment estimates | Update lead stages and export CSV |
 | Ask the guided inventory assistant | Confirm, cancel or complete test drives |
 | Submit an inquiry or test-drive request | Configure dealership details and currency |
-| Track or delete a request using its private code | See shopper requests in the same database |
+| Track, reschedule, cancel or delete a request using its private code | See shopper requests in the same database |
 
 **Suggested tour:** request a Toyota test drive → save the request code → sign in to Staff → confirm the request → return to My request and see the confirmation. [Full five-minute walkthrough →](docs/TRY-IT.md)
 

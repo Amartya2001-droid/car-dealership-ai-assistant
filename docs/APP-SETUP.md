@@ -12,7 +12,7 @@ The current local `.env` contains a generated owner password. It is excluded fro
 
 ## Shopper workflows
 
-Browse and filter inventory, save a device-local shortlist, inspect specifications and payment estimates, ask the inventory assistant, pick a test-drive time from the open 30-minute slots for a chosen day (`GET /api/availability?date=YYYY-MM-DD`), submit inquiries or test-drive requests, and track or delete requests with a private code. No shopper account is required. Save the request code: this release does not email it automatically.
+Browse and filter inventory, save a device-local shortlist, inspect specifications and payment estimates, ask the inventory assistant, pick a test-drive time from the open 30-minute slots for a chosen day (`GET /api/availability?date=YYYY-MM-DD`), submit inquiries or test-drive requests, and track, reschedule, cancel or delete requests with a private code. A rescheduled test drive goes back to "requested" until staff confirm the new time; shoppers can change only upcoming requested or confirmed test drives. No shopper account is required. Save the request code: this release does not email it automatically.
 
 ## Staff workflows
 

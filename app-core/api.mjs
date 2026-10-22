@@ -33,6 +33,56 @@ const text = (v, label, max = 200, required = true) => {
   return v.trim();
 };
 const decode = (rows) => rows.map((row) => JSON.parse(row.payload));
+// Rows changed by a write; node:sqlite and D1 report this differently.
+const changedRows = (result) =>
+  Number(result?.changes ?? result?.meta?.changes ?? 0);
+const isConstraintError = (error) => /UNIQUE|constraint/i.test(error.message);
+// Validates a requested test-drive start time against the booking rules.
+function bookableTime(value, cfg) {
+  const time = new Date(value);
+  if (
+    typeof value !== "string" ||
+    Number.isNaN(+time) ||
+    time <= new Date() ||
+    +time > Date.now() + 90 * 86400000
+  )
+    fail(400, "Choose a future time within the next 90 days.");
+  if (time.getUTCSeconds() !== 0 || time.getUTCMilliseconds() !== 0)
+    fail(400, "Choose a time on the hour or half hour.");
+  if (!isBookableTime(time, cfg))
+    fail(
+      400,
+      "That time is outside our test-drive hours. Choose one of the available times.",
+    );
+  return time.toISOString();
+}
+// Appointments a shopper may still reschedule or cancel themselves.
+const changeable = (appointment) =>
+  ["requested", "confirmed"].includes(appointment.status) &&
+  new Date(appointment.scheduledFor) > new Date();
+async function leadForToken(db, token) {
+  const leads = decode(
+    await db.all(
+      "SELECT payload FROM leads WHERE json_extract(payload,'$.trackingHash')=?",
+      [await digest(text(token, "Request code", 100))],
+    ),
+  );
+  if (!leads.length) fail(404, "Request not found. Check your request code.");
+  return leads[0];
+}
+async function shopperAppointment(db, body) {
+  const lead = await leadForToken(db, body.token);
+  const appointment = decode(
+    await db.all("SELECT payload FROM appointments WHERE id=? AND lead_id=?", [
+      text(body.appointmentId, "Appointment", 100),
+      lead.id,
+    ]),
+  )[0];
+  if (!appointment) fail(404, "Test drive not found for this request code.");
+  if (!changeable(appointment))
+    fail(409, "This test drive can no longer be changed online. Please contact the dealership.");
+  return appointment;
+}
 const defaultSettings = {
   name: "Northstar Auto",
   currency: "CAD",
@@ -289,28 +339,15 @@ export async function handleApi(request, env, db) {
       ];
       let appointment = null;
       if (body.scheduledFor) {
-        const time = new Date(body.scheduledFor);
         if (!vehicle) fail(400, "Choose a vehicle for your test drive.");
-        if (
-          Number.isNaN(+time) ||
-          time <= new Date() ||
-          +time > Date.now() + 90 * 86400000
-        )
-          fail(400, "Choose a future time within the next 90 days.");
-        if (time.getUTCSeconds() !== 0 || time.getUTCMilliseconds() !== 0)
-          fail(400, "Choose a time on the hour or half hour.");
-        if (!isBookableTime(time, await settings(db)))
-          fail(
-            400,
-            "That time is outside our test-drive hours. Choose one of the available times.",
-          );
+        const scheduledFor = bookableTime(body.scheduledFor, await settings(db));
         appointment = {
           id: id(),
           leadId: lead.id,
           vehicleId: vehicle.id,
           vehicleName: lead.vehicleName,
           name,
-          scheduledFor: time.toISOString(),
+          scheduledFor,
           status: "requested",
           createdAt: now(),
         };
@@ -328,7 +365,7 @@ export async function handleApi(request, env, db) {
       try {
         await db.batch(queries);
       } catch (error) {
-        if (/UNIQUE|constraint/i.test(error.message))
+        if (isConstraintError(error))
           fail(
             409,
             "That time has just been requested. Please choose another time.",
@@ -349,21 +386,16 @@ export async function handleApi(request, env, db) {
       );
     }
     if (path === "/api/request/status" && method === "POST") {
-      const token = text(body.token, "Request code", 100);
-      const leads = decode(
-        await db.all(
-          "SELECT payload FROM leads WHERE json_extract(payload,'$.trackingHash')=?",
-          [await digest(token)],
-        ),
-      );
-      if (!leads.length)
-        fail(404, "Request not found. Check your request code.");
-      const lead = leads[0];
+      const lead = await leadForToken(db, body.token);
       const appointments = decode(
-        await db.all("SELECT payload FROM appointments WHERE lead_id=?", [
-          lead.id,
-        ]),
-      );
+        await db.all(
+          "SELECT payload FROM appointments WHERE lead_id=? ORDER BY scheduled_for",
+          [lead.id],
+        ),
+      ).map((appointment) => ({
+        ...appointment,
+        changeable: changeable(appointment),
+      }));
       return finish(
         json({
           status: lead.status,
@@ -372,6 +404,54 @@ export async function handleApi(request, env, db) {
           appointments,
         }),
       );
+    }
+    if (path === "/api/request/reschedule" && method === "POST") {
+      await limited(db, `reschedule:${ip}`, 10);
+      const appointment = await shopperAppointment(db, body);
+      const scheduledFor = bookableTime(body.scheduledFor, await settings(db));
+      if (scheduledFor === appointment.scheduledFor)
+        fail(400, "Choose a different time from your current booking.");
+      const prior = appointment.status;
+      const updated = {
+        ...appointment,
+        scheduledFor,
+        // Any change needs staff to confirm the new time again.
+        status: "requested",
+        previousScheduledFor: appointment.scheduledFor,
+        rescheduledAt: now(),
+        rescheduleCount: (appointment.rescheduleCount || 0) + 1,
+      };
+      let result;
+      try {
+        result = await db.run(
+          "UPDATE appointments SET scheduled_for=?,status=?,payload=? WHERE id=? AND status=? AND scheduled_for=?",
+          [scheduledFor, "requested", JSON.stringify(updated), appointment.id, prior, appointment.scheduledFor],
+        );
+      } catch (error) {
+        if (isConstraintError(error))
+          fail(409, "That time has just been requested. Please choose another time.");
+        throw error;
+      }
+      if (!changedRows(result))
+        fail(409, "This test drive was just updated. Check its status and try again.");
+      return finish(json({ appointment: { ...updated, changeable: true } }));
+    }
+    if (path === "/api/request/cancel" && method === "POST") {
+      await limited(db, `reschedule:${ip}`, 10);
+      const appointment = await shopperAppointment(db, body);
+      const updated = {
+        ...appointment,
+        status: "cancelled",
+        cancelledBy: "shopper",
+        cancelledAt: now(),
+      };
+      const result = await db.run(
+        "UPDATE appointments SET status=?,payload=? WHERE id=? AND status=?",
+        ["cancelled", JSON.stringify(updated), appointment.id, appointment.status],
+      );
+      if (!changedRows(result))
+        fail(409, "This test drive was just updated. Check its status and try again.");
+      return finish(json({ appointment: { ...updated, changeable: false } }));
     }
     if (path === "/api/request/delete" && method === "POST") {
       const token = text(body.token, "Request code", 100);

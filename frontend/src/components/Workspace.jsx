@@ -39,6 +39,19 @@ const price = (v, currency = "CAD") =>
     currency,
     maximumFractionDigits: 0,
   }).format(v);
+const zoneOf = (cfg) => cfg?.timezone || "America/Halifax";
+const whenLabel = (iso, timeZone) =>
+  new Date(iso).toLocaleString(undefined, {
+    timeZone,
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+const appointmentLabel = {
+  requested: "Awaiting confirmation",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
 const statusClass = (s) =>
   ["confirmed", "won", "completed"].includes(s)
     ? "success"
@@ -132,6 +145,10 @@ export default function Workspace() {
     [chat, setChat] = useState(false),
     [messages, setMessages] = useState([]),
     [chatInput, setChatInput] = useState("");
+  const [bookingSlot, setBookingSlot] = useState(""),
+    [slotVersion, setSlotVersion] = useState(0),
+    [changing, setChanging] = useState(null),
+    [newSlot, setNewSlot] = useState("");
   const [editVehicle, setEditVehicle] = useState(null),
     [editLead, setEditLead] = useState(null),
     [leadQuery, setLeadQuery] = useState(""),
@@ -201,6 +218,23 @@ export default function Workspace() {
   useEffect(() => {
     localStorage.setItem("northstar-shortlist", JSON.stringify(saved));
   }, [saved]);
+  useEffect(() => setBookingSlot(""), [booking]);
+  useEffect(() => {
+    setChanging(null);
+    setNewSlot("");
+  }, [trackResult, tracking]);
+  const refreshTracking = async () =>
+    setTrackResult(
+      await api("/request/status", { method: "POST", body: { token: trackCode } }),
+    );
+  // Clears a stale slot choice and reloads availability after a conflict.
+  const onSlotConflict = (e, clear) => {
+    if (e.status === 409) {
+      clear("");
+      setSlotVersion((v) => v + 1);
+    }
+    throw e;
+  };
   const toggleSaved = (id) =>
     setSaved((old) =>
       old.includes(id) ? old.filter((x) => x !== id) : [...old, id],
@@ -893,6 +927,15 @@ export default function Workspace() {
                             <small>
                               {new Date(a.scheduledFor).toLocaleString()}
                             </small>
+                            {a.previousScheduledFor && (
+                              <small>
+                                Rescheduled by shopper · was{" "}
+                                {new Date(a.previousScheduledFor).toLocaleString()}
+                              </small>
+                            )}
+                            {a.cancelledBy === "shopper" && (
+                              <small>Cancelled by shopper</small>
+                            )}
                           </div>
                           <span className={`badge ${statusClass(a.status)}`}>
                             {a.status}
@@ -1198,21 +1241,27 @@ export default function Workspace() {
             onSubmit={(e) => {
               e.preventDefault();
               const f = Object.fromEntries(new FormData(e.currentTarget));
+              if (booking.id && !bookingSlot) {
+                toast.error("Choose an available test-drive time.");
+                return;
+              }
               const body = {
                 ...f,
                 consent: f.consent === "on",
                 vehicleId: booking.id,
-                ...(f.scheduledFor
-                  ? { scheduledFor: new Date(f.scheduledFor).toISOString() }
-                  : {}),
+                ...(booking.id ? { scheduledFor: bookingSlot } : {}),
               };
               run(async () => {
-                const result = await api("/inquiries", {
-                  method: "POST",
-                  body,
-                });
-                setReceipt(result);
-                setBooking(null);
+                try {
+                  const result = await api("/inquiries", {
+                    method: "POST",
+                    body,
+                  });
+                  setReceipt(result);
+                  setBooking(null);
+                } catch (e) {
+                  onSlotConflict(e, setBookingSlot);
+                }
               });
             }}
           >
@@ -1239,22 +1288,14 @@ export default function Workspace() {
                 autoComplete="tel"
                 maxLength={30}
               />
-              {booking?.id && (
-                <Field
-                  label="Preferred date and time"
-                  name="scheduledFor"
-                  type="datetime-local"
-                  step="1800"
-                  required
-                />
-              )}
             </div>
             {booking?.id && (
-              <p className="subtle">
-                Choose a time on the hour or half hour, within 90 days. Times
-                use your device’s timezone. Requests are subject to dealership
-                hours and confirmation.
-              </p>
+              <SlotPicker
+                timeZone={zoneOf(cfg)}
+                value={bookingSlot}
+                onChange={setBookingSlot}
+                refresh={slotVersion}
+              />
             )}
             <Field label="Your message">
               <Textarea
@@ -1298,9 +1339,17 @@ export default function Workspace() {
               yet.
             </DialogDescription>
           </DialogHeader>
+          {receipt?.appointment && (
+            <p>
+              Requested test drive:{" "}
+              <strong>
+                {whenLabel(receipt.appointment.scheduledFor, zoneOf(cfg))}
+              </strong>
+            </p>
+          )}
           <p>
-            Keep this private request code. Use “My request” to check its status
-            or delete your information.
+            Keep this private request code. Use “My request” to check its status,
+            change or cancel your test drive, or delete your information.
           </p>
           <code className="request-code">{receipt?.trackingToken}</code>
           <Button
@@ -1349,9 +1398,97 @@ export default function Workspace() {
               <span className="badge">Inquiry: {trackResult.status}</span>
               <h3>{trackResult.vehicleName || "General inquiry"}</h3>
               {trackResult.appointments.map((a) => (
-                <p key={a.id}>
-                  {new Date(a.scheduledFor).toLocaleString()} — {a.status}
-                </p>
+                <div className="tracking-appointment" key={a.id}>
+                  <p>
+                    <strong>{whenLabel(a.scheduledFor, zoneOf(cfg))}</strong>
+                    <span className={`badge ${statusClass(a.status)}`}>
+                      {appointmentLabel[a.status] || a.status}
+                    </span>
+                  </p>
+                  {a.previousScheduledFor && a.status === "requested" && (
+                    <p className="subtle">
+                      Changed from {whenLabel(a.previousScheduledFor, zoneOf(cfg))}.
+                      Staff will confirm the new time.
+                    </p>
+                  )}
+                  {a.changeable && changing !== a.id && (
+                    <div className="row-actions">
+                      <button
+                        className="outlined"
+                        disabled={busy}
+                        onClick={() => {
+                          setNewSlot("");
+                          setChanging(a.id);
+                        }}
+                      >
+                        Change time
+                      </button>
+                      <button
+                        className="outlined"
+                        disabled={busy}
+                        onClick={() => {
+                          if (window.confirm("Cancel this test drive?"))
+                            run(async () => {
+                              await api("/request/cancel", {
+                                method: "POST",
+                                body: { token: trackCode, appointmentId: a.id },
+                              });
+                              await refreshTracking();
+                              toast.success("Your test drive was cancelled");
+                            });
+                        }}
+                      >
+                        Cancel test drive
+                      </button>
+                    </div>
+                  )}
+                  {changing === a.id && (
+                    <>
+                      <SlotPicker
+                        timeZone={zoneOf(cfg)}
+                        value={newSlot}
+                        onChange={setNewSlot}
+                        exclude={a.scheduledFor}
+                        refresh={slotVersion}
+                      />
+                      <div className="row-actions">
+                        <button
+                          className="primary"
+                          disabled={busy || !newSlot}
+                          onClick={() =>
+                            run(async () => {
+                              try {
+                                await api("/request/reschedule", {
+                                  method: "POST",
+                                  body: {
+                                    token: trackCode,
+                                    appointmentId: a.id,
+                                    scheduledFor: newSlot,
+                                  },
+                                });
+                              } catch (e) {
+                                onSlotConflict(e, setNewSlot);
+                              }
+                              await refreshTracking();
+                              toast.success(
+                                "New time requested. Staff will confirm it.",
+                              );
+                            })
+                          }
+                        >
+                          Request new time
+                        </button>
+                        <button
+                          className="outlined"
+                          disabled={busy}
+                          onClick={() => setChanging(null)}
+                        >
+                          Keep current time
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               ))}
               <button
                 className="danger"
@@ -1581,8 +1718,9 @@ export default function Workspace() {
           </p>
           <h3>Your controls</h3>
           <p>
-            Save your private request code to check status or permanently delete
-            your inquiry and linked appointments under “My request.” Shortlisted
+            Save your private request code to check status, change or cancel a
+            test drive, or permanently delete your inquiry and linked
+            appointments under “My request.” Shortlisted
             vehicle IDs stay only on this device. Staff sign-in uses an expiring
             session.
           </p>
@@ -1690,6 +1828,77 @@ export default function Workspace() {
           </small>
         </section>
       )}
+    </div>
+  );
+}
+const localDay = (timeZone, offsetDays = 0) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone }).format(
+    new Date(Date.now() + offsetDays * 86400000),
+  );
+// Lets a shopper pick an open test-drive slot from GET /availability.
+function SlotPicker({ timeZone, value, onChange, exclude, refresh = 0 }) {
+  const today = localDay(timeZone);
+  const [date, setDate] = useState(today),
+    [day, setDay] = useState(null),
+    [problem, setProblem] = useState("");
+  useEffect(() => {
+    let current = true;
+    setDay(null);
+    setProblem("");
+    api(`/availability?date=${encodeURIComponent(date)}`)
+      .then((result) => current && setDay(result))
+      .catch((e) => current && setProblem(e.message));
+    return () => {
+      current = false;
+    };
+  }, [date, refresh]);
+  const open = (day?.slots || []).filter((s) => s.available && s.start !== exclude);
+  return (
+    <div className="slot-picker">
+      <Field
+        label="Test-drive date"
+        type="date"
+        value={date}
+        min={today}
+        max={localDay(timeZone, 89)}
+        onChange={(e) => {
+          setDate(e.target.value || today);
+          onChange("");
+        }}
+      />
+      <div className="slot-grid" role="radiogroup" aria-label="Available times">
+        {day?.slots.map((s) => {
+          const disabled = !s.available || s.start === exclude;
+          return (
+            <button
+              key={s.start}
+              type="button"
+              role="radio"
+              aria-checked={value === s.start}
+              className={value === s.start ? "selected" : ""}
+              disabled={disabled}
+              onClick={() => onChange(s.start)}
+            >
+              {new Date(s.start).toLocaleTimeString(undefined, {
+                timeZone,
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </button>
+          );
+        })}
+      </div>
+      <p className="subtle" role="status">
+        {problem
+          ? problem
+          : !day
+            ? "Checking availability…"
+            : day.closed
+              ? "Test drives aren’t offered on this day. Try another date."
+              : !open.length
+                ? "This day is fully booked. Try another date."
+                : `Times are in the dealership’s time zone (${timeZone}). Staff will confirm your request.`}
+      </p>
     </div>
   );
 }
