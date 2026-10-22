@@ -156,6 +156,42 @@ async function staff(request, db) {
   );
   return rows.length > 0;
 }
+export const TRADE_IN_CONDITIONS = ["excellent", "good", "fair", "poor"];
+// Optional trade-in described by the shopper. Only known fields are kept; no
+// loan or payoff details are collected.
+function tradeInInput(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "object" || Array.isArray(value))
+    fail(400, "Trade-in details are invalid.");
+  const maxYear = new Date().getFullYear() + 1;
+  const year = Number(value.year);
+  if (!Number.isInteger(year) || year < 1950 || year > maxYear)
+    fail(400, `Trade-in year must be between 1950 and ${maxYear}.`);
+  const tradeIn = {
+    year,
+    make: text(value.make, "Trade-in make", 60),
+    model: text(value.model, "Trade-in model", 60),
+    mileage: null,
+    condition: value.condition,
+    vin: null,
+    notes: text(value.notes ?? "", "Trade-in notes", 500, false),
+  };
+  if (value.mileage !== undefined && value.mileage !== null && value.mileage !== "") {
+    const mileage = Number(value.mileage);
+    if (!Number.isInteger(mileage) || mileage < 0 || mileage > 2000000)
+      fail(400, "Trade-in mileage must be a whole number of kilometres.");
+    tradeIn.mileage = mileage;
+  }
+  if (!TRADE_IN_CONDITIONS.includes(tradeIn.condition))
+    fail(400, "Choose the trade-in's condition.");
+  const vin = text(value.vin ?? "", "Trade-in VIN", 17, false).toUpperCase();
+  if (vin) {
+    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin))
+      fail(400, "A VIN has 17 letters and numbers (no I, O or Q).");
+    tradeIn.vin = vin;
+  }
+  return tradeIn;
+}
 function vehicleInput(body, current = {}) {
   const v = { ...current, id: current.id || id() };
   for (const key of ["make", "model", "bodyType", "fuelType"])
@@ -355,13 +391,17 @@ export async function handleApi(request, env, db) {
           : null,
         status: "new",
         consent: body.consent === true,
+        tradeIn: tradeInInput(body.tradeIn),
         createdAt: now(),
         notes: "",
       };
       const token = id() + id();
       lead.trackingHash = await digest(token);
       lead.activity = [
-        activityEvent("created", "shopper", { source: "web" }),
+        activityEvent("created", "shopper", {
+          source: "web",
+          hasTradeIn: Boolean(lead.tradeIn),
+        }),
       ];
       const queries = [];
       let appointment = null;
@@ -438,6 +478,7 @@ export async function handleApi(request, env, db) {
           status: lead.status,
           vehicleName: lead.vehicleName,
           createdAt: lead.createdAt,
+          tradeIn: lead.tradeIn || null,
           appointments,
         }),
       );

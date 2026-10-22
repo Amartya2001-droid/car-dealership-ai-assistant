@@ -19,6 +19,9 @@ export async function answerQuestion(message, env, inventory, cfg) {
   else if (/test drive|book|appointment/i.test(message))
     reply =
       "Choose a vehicle and select “Request a test drive” to send your preferred time. Your appointment is only booked once our staff confirms it.";
+  else if (/trade[\s-]?in|trade (?:my|in)|my (?:current|old) (?:car|vehicle)/i.test(message))
+    reply =
+      "You can add your current vehicle's year, make, model, mileage and condition when you send an inquiry or test-drive request. Our team reviews trade-ins in person; any value must be confirmed by a dealership appraiser.";
   else if (/finance|loan|apr|payment/i.test(message))
     reply =
       "Vehicle prices are shown in " +

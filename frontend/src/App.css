@@ -995,6 +995,40 @@ td small {
 .slot-picker {
   margin-bottom: 6px;
 }
+.trade-in {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px 4px;
+  margin: 0 0 16px;
+}
+.trade-in legend {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 6px;
+}
+.trade-in-summary {
+  background: #f4f7f3;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 16px 12px;
+  margin: 14px 0;
+}
+.trade-in-summary h3 {
+  margin-bottom: 8px;
+}
+.trade-in-summary dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.trade-in-summary dt {
+  color: var(--muted);
+}
+.trade-in-summary dd {
+  margin: 0;
+}
 .activity {
   border-top: 1px solid var(--line);
   margin-top: 18px;

@@ -52,6 +52,20 @@ const appointmentLabel = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+const tradeInConditions = ["excellent", "good", "fair", "poor"];
+const capitalize = (v) => (v ? v[0].toUpperCase() + v.slice(1) : "");
+const tradeInSummary = (t) =>
+  t
+    ? [
+        `${t.year} ${t.make} ${t.model}`,
+        t.mileage !== null && t.mileage !== undefined
+          ? `${t.mileage.toLocaleString()} km`
+          : null,
+        capitalize(t.condition),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
 const actorLabel = { shopper: "Shopper", staff: "Staff", phone: "Phone assistant" };
 const activityText = (e, timeZone) => {
   const when = (iso) => (iso ? whenLabel(iso, timeZone) : "an unknown time");
@@ -59,7 +73,9 @@ const activityText = (e, timeZone) => {
     case "created":
       return e.source === "voice"
         ? "Call captured by the phone assistant"
-        : "Inquiry submitted online";
+        : e.hasTradeIn
+          ? "Inquiry submitted online with a trade-in"
+          : "Inquiry submitted online";
     case "appointment_requested":
       return `Test drive requested for ${when(e.scheduledFor)}`;
     case "appointment_rescheduled":
@@ -187,7 +203,8 @@ export default function Workspace() {
   const [bookingSlot, setBookingSlot] = useState(""),
     [slotVersion, setSlotVersion] = useState(0),
     [changing, setChanging] = useState(null),
-    [newSlot, setNewSlot] = useState("");
+    [newSlot, setNewSlot] = useState(""),
+    [hasTradeIn, setHasTradeIn] = useState(false);
   const [editVehicle, setEditVehicle] = useState(null),
     [editLead, setEditLead] = useState(null),
     [leadQuery, setLeadQuery] = useState(""),
@@ -257,7 +274,10 @@ export default function Workspace() {
   useEffect(() => {
     localStorage.setItem("northstar-shortlist", JSON.stringify(saved));
   }, [saved]);
-  useEffect(() => setBookingSlot(""), [booking]);
+  useEffect(() => {
+    setBookingSlot("");
+    setHasTradeIn(false);
+  }, [booking]);
   useEffect(() => {
     setChanging(null);
     setNewSlot("");
@@ -860,12 +880,13 @@ export default function Workspace() {
                         className="outlined"
                         onClick={() => {
                           const rows = [
-                            ["Name", "Email", "Phone", "Vehicle", "Status"],
+                            ["Name", "Email", "Phone", "Vehicle", "Trade-in", "Status"],
                             ...leads.map((l) => [
                               l.name,
                               l.email,
                               l.phone,
                               l.vehicleName,
+                              tradeInSummary(l.tradeIn),
                               l.status,
                             ]),
                           ];
@@ -909,7 +930,15 @@ export default function Workspace() {
                                   <strong>{l.name}</strong>
                                   <small>{l.email}</small>
                                 </td>
-                                <td>{l.vehicleName || "General inquiry"}</td>
+                                <td>
+                                  {l.vehicleName || "General inquiry"}
+                                  {l.tradeIn && (
+                                    <small>
+                                      Trade-in: {l.tradeIn.year} {l.tradeIn.make}{" "}
+                                      {l.tradeIn.model}
+                                    </small>
+                                  )}
+                                </td>
                                 <td>
                                   {new Date(l.createdAt).toLocaleDateString()}
                                 </td>
@@ -1294,6 +1323,12 @@ export default function Workspace() {
             onSubmit={(e) => {
               e.preventDefault();
               const f = Object.fromEntries(new FormData(e.currentTarget));
+              const tradeIn = {};
+              for (const key of Object.keys(f))
+                if (key.startsWith("tradeIn.")) {
+                  tradeIn[key.slice(8)] = f[key];
+                  delete f[key];
+                }
               if (booking.id && !bookingSlot) {
                 toast.error("Choose an available test-drive time.");
                 return;
@@ -1303,6 +1338,7 @@ export default function Workspace() {
                 consent: f.consent === "on",
                 vehicleId: booking.id,
                 ...(booking.id ? { scheduledFor: bookingSlot } : {}),
+                ...(hasTradeIn ? { tradeIn } : {}),
               };
               run(async () => {
                 try {
@@ -1362,6 +1398,64 @@ export default function Workspace() {
                 }
               />
             </Field>
+            <label className="check-field">
+              <input
+                type="checkbox"
+                checked={hasTradeIn}
+                onChange={(e) => setHasTradeIn(e.target.checked)}
+              />{" "}
+              I have a vehicle to trade in
+            </label>
+            {hasTradeIn && (
+              <fieldset className="trade-in">
+                <legend>Your trade-in</legend>
+                <div className="form-grid">
+                  <Field
+                    label="Year"
+                    name="tradeIn.year"
+                    type="number"
+                    min="1950"
+                    max={new Date().getFullYear() + 1}
+                    required
+                  />
+                  <Field label="Make" name="tradeIn.make" required maxLength={60} />
+                  <Field label="Model" name="tradeIn.model" required maxLength={60} />
+                  <Field
+                    label="Mileage (km, optional)"
+                    name="tradeIn.mileage"
+                    type="number"
+                    min="0"
+                    max="2000000"
+                  />
+                  <Field label="Condition">
+                    <select name="tradeIn.condition" required defaultValue="">
+                      <option value="" disabled>
+                        Choose condition
+                      </option>
+                      {tradeInConditions.map((c) => (
+                        <option key={c} value={c}>
+                          {capitalize(c)}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field
+                    label="VIN (optional)"
+                    name="tradeIn.vin"
+                    maxLength={17}
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                  />
+                </div>
+                <Field label="Anything we should know? (optional)">
+                  <Textarea name="tradeIn.notes" maxLength={500} />
+                </Field>
+                <p className="subtle">
+                  Staff will appraise your vehicle in person. Please don’t
+                  include loan or account details here.
+                </p>
+              </fieldset>
+            )}
             <label className="check-field">
               <input type="checkbox" name="consent" /> I agree to optional
               follow-up calls or texts about this inquiry.
@@ -1450,6 +1544,11 @@ export default function Workspace() {
             <div className="tracking-result">
               <span className="badge">Inquiry: {trackResult.status}</span>
               <h3>{trackResult.vehicleName || "General inquiry"}</h3>
+              {trackResult.tradeIn && (
+                <p className="subtle">
+                  Trade-in: {tradeInSummary(trackResult.tradeIn)}
+                </p>
+              )}
               {trackResult.appointments.map((a) => (
                 <div className="tracking-appointment" key={a.id}>
                   <p>
@@ -1699,6 +1798,39 @@ export default function Workspace() {
               <span className="subtle">
                 Optional follow-up consent: {editLead.consent ? "Yes" : "No"}
               </span>
+              {editLead.tradeIn && (
+                <section className="trade-in-summary" aria-label="Trade-in">
+                  <h3>Trade-in</h3>
+                  <dl>
+                    <dt>Vehicle</dt>
+                    <dd>
+                      {editLead.tradeIn.year} {editLead.tradeIn.make}{" "}
+                      {editLead.tradeIn.model}
+                    </dd>
+                    <dt>Mileage</dt>
+                    <dd>
+                      {editLead.tradeIn.mileage !== null &&
+                      editLead.tradeIn.mileage !== undefined
+                        ? `${editLead.tradeIn.mileage.toLocaleString()} km`
+                        : "Not provided"}
+                    </dd>
+                    <dt>Condition</dt>
+                    <dd>{capitalize(editLead.tradeIn.condition)}</dd>
+                    {editLead.tradeIn.vin && (
+                      <>
+                        <dt>VIN</dt>
+                        <dd>
+                          <code>{editLead.tradeIn.vin}</code>
+                        </dd>
+                      </>
+                    )}
+                  </dl>
+                  {editLead.tradeIn.notes && <p>{editLead.tradeIn.notes}</p>}
+                  <p className="subtle">
+                    Shopper-described. Verify in person before any appraisal.
+                  </p>
+                </section>
+              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1766,6 +1898,7 @@ export default function Workspace() {
           <h3>Information you choose to share</h3>
           <p>
             Inquiry forms save your name, email, optional phone number, message,
+            any trade-in vehicle details you add,
             follow-up preference, and requested test-drive details. Authorized
             dealership staff can view these records to respond and manage
             appointments.

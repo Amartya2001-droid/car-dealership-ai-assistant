@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-22 (Trade-In Details)
+- Inquiries and test-drive requests accept an optional `tradeIn` (year, make, model, condition, plus optional mileage in km, VIN and notes). Values are validated and normalized (VINs upper-cased and checked for 17 valid characters); unknown fields are dropped, and no loan or payoff details are collected.
+- Staff see the trade-in in the lead view, a "Trade-in" line in the leads table, a new CSV column, and a "with a trade-in" note on the lead's first timeline event. Shoppers see their own trade-in under "My request", and deleting a request removes it.
+- The guided assistant now explains how to add a trade-in and that values need an in-person appraisal.
+
 ## 2026-10-22 (Lead Activity Timeline)
 - Every lead now keeps a timestamped `activity` history: how it arrived (web inquiry or phone assistant), test-drive requests, staff confirmations/completions/cancellations, shopper reschedules and cancellations, staff status changes, and note edits (with a short preview). Each event records who made the change (`shopper`, `staff` or `phone`).
 - Events are appended inside SQL in the same batch as the change they describe, so concurrent staff and shopper actions can't drop each other's history and a rejected change leaves no event. The newest 200 events are kept per lead.
