@@ -52,6 +52,45 @@ const appointmentLabel = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+const actorLabel = { shopper: "Shopper", staff: "Staff", phone: "Phone assistant" };
+const activityText = (e, timeZone) => {
+  const when = (iso) => (iso ? whenLabel(iso, timeZone) : "an unknown time");
+  switch (e.type) {
+    case "created":
+      return e.source === "voice"
+        ? "Call captured by the phone assistant"
+        : "Inquiry submitted online";
+    case "appointment_requested":
+      return `Test drive requested for ${when(e.scheduledFor)}`;
+    case "appointment_rescheduled":
+      return `Test drive moved from ${when(e.from)} to ${when(e.scheduledFor)}`;
+    case "appointment_confirmed":
+      return `Test drive confirmed for ${when(e.scheduledFor)}`;
+    case "appointment_completed":
+      return `Test drive completed (${when(e.scheduledFor)})`;
+    case "appointment_cancelled":
+      return `Test drive for ${when(e.scheduledFor)} cancelled`;
+    case "status_changed":
+      return `Status changed from ${e.from} to ${e.to}`;
+    case "notes_updated":
+      return "Notes updated";
+    default:
+      return String(e.type).replaceAll("_", " ");
+  }
+};
+// Older leads saved before the timeline existed only have createdAt.
+const leadActivity = (lead) =>
+  lead.activity?.length
+    ? lead.activity
+    : [
+        {
+          id: "created",
+          at: lead.createdAt,
+          type: "created",
+          actor: lead.source === "voice" ? "phone" : "shopper",
+          source: lead.source,
+        },
+      ];
 const statusClass = (s) =>
   ["confirmed", "won", "completed"].includes(s)
     ? "success"
@@ -858,6 +897,7 @@ export default function Workspace() {
                               <th>Customer</th>
                               <th>Interested in</th>
                               <th>Received</th>
+                              <th>Last activity</th>
                               <th>Status</th>
                               <th>Details</th>
                             </tr>
@@ -872,6 +912,19 @@ export default function Workspace() {
                                 <td>{l.vehicleName || "General inquiry"}</td>
                                 <td>
                                   {new Date(l.createdAt).toLocaleDateString()}
+                                </td>
+                                <td>
+                                  {(() => {
+                                    const last = leadActivity(l).at(-1);
+                                    return (
+                                      <>
+                                        {new Date(last.at).toLocaleDateString()}
+                                        <small>
+                                          {activityText(last, zoneOf(cfg))}
+                                        </small>
+                                      </>
+                                    );
+                                  })()}
                                 </td>
                                 <td>
                                   <span
@@ -1697,6 +1750,7 @@ export default function Workspace() {
                   Delete lead
                 </button>
               </form>
+              <ActivityTimeline lead={editLead} timeZone={zoneOf(cfg)} />
             </>
           )}
         </DialogContent>
@@ -1829,6 +1883,35 @@ export default function Workspace() {
         </section>
       )}
     </div>
+  );
+}
+function ActivityTimeline({ lead, timeZone }) {
+  const events = [...leadActivity(lead)].reverse();
+  return (
+    <section className="activity" aria-label="Lead activity">
+      <h3>Activity</h3>
+      <p className="subtle">Newest first · times in {timeZone}</p>
+      <ol className="activity-list">
+        {events.map((e) => (
+          <li key={e.id}>
+            <span className={`activity-dot ${e.actor}`} aria-hidden="true" />
+            <div>
+              <p>{activityText(e, timeZone)}</p>
+              {e.type === "notes_updated" && e.preview && (
+                <p className="activity-preview">
+                  “{e.preview}
+                  {e.length > e.preview.length ? "…" : ""}”
+                </p>
+              )}
+              <small>
+                {actorLabel[e.actor] || e.actor} ·{" "}
+                <time dateTime={e.at}>{whenLabel(e.at, timeZone)}</time>
+              </small>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 const localDay = (timeZone, offsetDays = 0) =>

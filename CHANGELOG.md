@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 (Lead Activity Timeline)
+- Every lead now keeps a timestamped `activity` history: how it arrived (web inquiry or phone assistant), test-drive requests, staff confirmations/completions/cancellations, shopper reschedules and cancellations, staff status changes, and note edits (with a short preview). Each event records who made the change (`shopper`, `staff` or `phone`).
+- Events are appended inside SQL in the same batch as the change they describe, so concurrent staff and shopper actions can't drop each other's history and a rejected change leaves no event. The newest 200 events are kept per lead.
+- Staff lead edits now update only the changed fields instead of rewriting the whole record, and staff test-drive transitions return 409 if the appointment changed since it was loaded.
+- The staff workspace shows the timeline in the lead view and a "Last activity" column in the leads table. Shoppers' request-status view does not expose it.
+
 ## 2026-10-22 (Shopper Reschedule & Cancel)
 - Added `POST /api/request/reschedule` and `POST /api/request/cancel`, so shoppers can move or cancel an upcoming test drive with their private request code. A rescheduled booking returns to `requested` and needs staff to confirm it again; the previous time is kept for staff (`previousScheduledFor`, `rescheduledAt`, `rescheduleCount`), and shopper cancellations are marked `cancelledBy: "shopper"`.
 - Changes are guarded against concurrent staff updates and slot races (409 instead of overwriting), limited to requested/confirmed test drives that have not started, and validated against the same booking rules as new requests.

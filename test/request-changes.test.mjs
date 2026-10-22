@@ -196,10 +196,11 @@ test("a staff update between read and write is not overwritten", async (t) => {
   // Simulate staff confirming the appointment just before the shopper's write lands.
   const racing = {
     ...f.db,
-    run: async (sql, params) => {
+    batch: async (queries) => {
+      const [sql, params] = queries[0];
       if (/^UPDATE appointments SET (scheduled_for|status)=/.test(sql) && params.includes(appointment.id))
         await f.db.run("UPDATE appointments SET status='confirmed' WHERE id=?", [appointment.id]);
-      return f.db.run(sql, params);
+      return f.db.batch(queries);
     },
   };
   for (const [path, extra] of [
@@ -218,4 +219,7 @@ test("a staff update between read and write is not overwritten", async (t) => {
   const row = (await f.db.all("SELECT status, scheduled_for FROM appointments WHERE id=?", [appointment.id]))[0];
   assert.equal(row.status, "confirmed");
   assert.equal(row.scheduled_for, appointment.scheduledFor);
+  // A rejected change leaves no event in the staff timeline.
+  const [lead] = (await f.request("/admin/overview", { staff: true })).data.leads;
+  assert.deepEqual(lead.activity.map((e) => e.type), ["created", "appointment_requested"]);
 });

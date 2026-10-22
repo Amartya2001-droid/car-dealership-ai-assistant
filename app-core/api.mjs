@@ -37,6 +37,35 @@ const decode = (rows) => rows.map((row) => JSON.parse(row.payload));
 const changedRows = (result) =>
   Number(result?.changes ?? result?.meta?.changes ?? 0);
 const isConstraintError = (error) => /UNIQUE|constraint/i.test(error.message);
+// Lead activity timeline. Events are appended inside SQL so concurrent
+// writers (staff edits, shopper changes) can never drop each other's events.
+export const ACTIVITY_LIMIT = 200;
+const activityEvent = (type, actor, details = {}) => ({
+  id: id(),
+  at: now(),
+  type,
+  actor,
+  ...details,
+});
+const activityList =
+  "json(COALESCE(json_extract(payload,'$.activity'),'[]'))";
+// SQL expression for `base` with `count` events appended (each bound as a JSON
+// parameter, in order), keeping only the newest ACTIVITY_LIMIT events.
+const withActivity = (base = "payload", count = 1) => {
+  const trim = Array.from(
+    { length: count },
+    (_, i) =>
+      `CASE WHEN json_array_length(${activityList}) + ${count} - ${ACTIVITY_LIMIT} > ${i} THEN '$[0]' ELSE '$.none' END`,
+  ).join(",");
+  const values = Array.from({ length: count }, () => "'$[#]',json(?)").join(",");
+  return `json_set(${base},'$.activity',json_insert(json_remove(${activityList},${trim}),${values}))`;
+};
+// Appends `event` to the appointment's lead only if the appointment write that
+// carries `revision` actually landed, so batches stay all-or-nothing.
+const appointmentActivity = (appointment, event) => [
+  `UPDATE leads SET payload=${withActivity()} WHERE id=? AND EXISTS (SELECT 1 FROM appointments a WHERE a.id=? AND json_extract(a.payload,'$.revision')=?)`,
+  [JSON.stringify(event), appointment.leadId, appointment.id, appointment.revision],
+];
 // Validates a requested test-drive start time against the booking rules.
 function bookableTime(value, cfg) {
   const time = new Date(value);
@@ -331,12 +360,10 @@ export async function handleApi(request, env, db) {
       };
       const token = id() + id();
       lead.trackingHash = await digest(token);
-      const queries = [
-        [
-          "INSERT INTO leads(id,payload,created_at) VALUES(?,?,?)",
-          [lead.id, JSON.stringify(lead), lead.createdAt],
-        ],
+      lead.activity = [
+        activityEvent("created", "shopper", { source: "web" }),
       ];
+      const queries = [];
       let appointment = null;
       if (body.scheduledFor) {
         if (!vehicle) fail(400, "Choose a vehicle for your test drive.");
@@ -351,6 +378,12 @@ export async function handleApi(request, env, db) {
           status: "requested",
           createdAt: now(),
         };
+        lead.activity.push(
+          activityEvent("appointment_requested", "shopper", {
+            appointmentId: appointment.id,
+            scheduledFor,
+          }),
+        );
         queries.push([
           "INSERT INTO appointments(id,lead_id,scheduled_for,status,payload) VALUES(?,?,?,?,?)",
           [
@@ -362,6 +395,10 @@ export async function handleApi(request, env, db) {
           ],
         ]);
       }
+      queries.unshift([
+        "INSERT INTO leads(id,payload,created_at) VALUES(?,?,?)",
+        [lead.id, JSON.stringify(lead), lead.createdAt],
+      ]);
       try {
         await db.batch(queries);
       } catch (error) {
@@ -420,13 +457,25 @@ export async function handleApi(request, env, db) {
         previousScheduledFor: appointment.scheduledFor,
         rescheduledAt: now(),
         rescheduleCount: (appointment.rescheduleCount || 0) + 1,
+        revision: id(),
       };
       let result;
       try {
-        result = await db.run(
-          "UPDATE appointments SET scheduled_for=?,status=?,payload=? WHERE id=? AND status=? AND scheduled_for=?",
-          [scheduledFor, "requested", JSON.stringify(updated), appointment.id, prior, appointment.scheduledFor],
-        );
+        [result] = await db.batch([
+          [
+            "UPDATE appointments SET scheduled_for=?,status=?,payload=? WHERE id=? AND status=? AND scheduled_for=?",
+            [scheduledFor, "requested", JSON.stringify(updated), appointment.id, prior, appointment.scheduledFor],
+          ],
+          appointmentActivity(
+            updated,
+            activityEvent("appointment_rescheduled", "shopper", {
+              appointmentId: appointment.id,
+              from: appointment.scheduledFor,
+              scheduledFor,
+              priorStatus: prior,
+            }),
+          ),
+        ]);
       } catch (error) {
         if (isConstraintError(error))
           fail(409, "That time has just been requested. Please choose another time.");
@@ -444,11 +493,22 @@ export async function handleApi(request, env, db) {
         status: "cancelled",
         cancelledBy: "shopper",
         cancelledAt: now(),
+        revision: id(),
       };
-      const result = await db.run(
-        "UPDATE appointments SET status=?,payload=? WHERE id=? AND status=?",
-        ["cancelled", JSON.stringify(updated), appointment.id, appointment.status],
-      );
+      const [result] = await db.batch([
+        [
+          "UPDATE appointments SET status=?,payload=? WHERE id=? AND status=?",
+          ["cancelled", JSON.stringify(updated), appointment.id, appointment.status],
+        ],
+        appointmentActivity(
+          updated,
+          activityEvent("appointment_cancelled", "shopper", {
+            appointmentId: appointment.id,
+            scheduledFor: appointment.scheduledFor,
+            from: appointment.status,
+          }),
+        ),
+      ]);
       if (!changedRows(result))
         fail(409, "This test drive was just updated. Check its status and try again.");
       return finish(json({ appointment: { ...updated, changeable: false } }));
@@ -537,16 +597,46 @@ export async function handleApi(request, env, db) {
           )
         )
           fail(400, "Invalid status.");
-        lead.status = body.status;
       }
-      if (body.notes !== undefined)
-        lead.notes = text(body.notes, "Notes", 5000, false);
-      lead.updatedAt = now();
-      await db.run("UPDATE leads SET payload=? WHERE id=?", [
-        JSON.stringify(lead),
-        lead.id,
-      ]);
-      const { trackingHash, ...safe } = lead;
+      // Only the edited fields are written, so concurrent activity is kept.
+      const fields = { updatedAt: now() };
+      const events = [];
+      if (body.status !== undefined && body.status !== lead.status) {
+        fields.status = body.status;
+        events.push(
+          activityEvent("status_changed", "staff", {
+            from: lead.status,
+            to: body.status,
+          }),
+        );
+      }
+      if (body.notes !== undefined) {
+        const notes = text(body.notes, "Notes", 5000, false);
+        if (notes !== (lead.notes || "")) {
+          fields.notes = notes;
+          events.push(
+            activityEvent("notes_updated", "staff", {
+              preview: notes.slice(0, 200),
+              length: notes.length,
+            }),
+          );
+        }
+      }
+      const keys = Object.keys(fields);
+      const updated = `json_set(payload,${keys.map((k) => `'$.${k}',?`).join(",")})`;
+      await db.run(
+        `UPDATE leads SET payload=${events.length ? withActivity(updated, events.length) : updated} WHERE id=?`,
+        [
+          ...keys.map((k) => fields[k]),
+          ...events.map((event) => JSON.stringify(event)),
+          lead.id,
+        ],
+      );
+      const saved = decode(
+        await db.all("SELECT payload FROM leads WHERE id=?", [lead.id]),
+      )[0];
+      if (!saved) fail(404, "Lead not found.");
+      const { trackingHash, ...safe } = saved;
       return finish(json({ lead: safe }));
     }
     if (leadMatch && method === "DELETE") {
@@ -581,15 +671,28 @@ export async function handleApi(request, env, db) {
         fail(400, "A past appointment cannot be confirmed.");
       const prior = appointment.status;
       appointment.status = body.status;
-      await db.run(
-        "UPDATE appointments SET status=?,payload=? WHERE id=? AND status=?",
+      appointment.revision = id();
+      const [result] = await db.batch([
         [
-          appointment.status,
-          JSON.stringify(appointment),
-          appointment.id,
-          prior,
+          "UPDATE appointments SET status=?,payload=? WHERE id=? AND status=?",
+          [
+            appointment.status,
+            JSON.stringify(appointment),
+            appointment.id,
+            prior,
+          ],
         ],
-      );
+        appointmentActivity(
+          appointment,
+          activityEvent("appointment_" + body.status, "staff", {
+            appointmentId: appointment.id,
+            scheduledFor: appointment.scheduledFor,
+            from: prior,
+          }),
+        ),
+      ]);
+      if (!changedRows(result))
+        fail(409, "This test drive was just updated. Refresh and try again.");
       return finish(json({ appointment }));
     }
     if (path === "/api/admin/seed" && method === "POST") {

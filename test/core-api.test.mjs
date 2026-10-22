@@ -325,6 +325,10 @@ test("voice intake rejects forgery, captures a caller in staff leads, and dedupl
   const overview = (await f.request("/admin/overview")).data;
   assert.equal(overview.leads.length, 1);
   assert.equal(overview.leads[0].source, "voice");
+  assert.deepEqual(
+    overview.leads[0].activity.map((e) => [e.type, e.actor]),
+    [["created", "phone"]],
+  );
   assert.equal(overview.leads[0].consent, false);
 });
 

@@ -104,6 +104,15 @@ export async function voiceResponse(request, env, db, cfg) {
     createdAt: new Date().toISOString(),
     notes: "",
   };
+  lead.activity = [
+    {
+      id: crypto.randomUUID(),
+      at: lead.createdAt,
+      type: "created",
+      actor: "phone",
+      source: "voice",
+    },
+  ];
   // Save before calling any external AI service so an outage cannot discard the caller's request.
   await db.run(
     "INSERT INTO leads(id,payload,created_at) VALUES(?,?,?) ON CONFLICT(id) DO NOTHING",
