@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 (Similar Vehicles & Compare)
+- Added `GET /api/inventory/:id/similar?limit=1–6` (default 3): in-stock alternatives ranked by body type, fuel type, price (within ±30%), model year and make, each with short reasons such as "Also an SUV" or "Similar price". Works for sold vehicles too, so shoppers can find a replacement.
+- Added `GET /api/compare?ids=a,b[,c]` for two or three distinct listed vehicles, returned in the requested order with "lowest price", "lowest mileage" and "newest" highlights (ties share a badge; no badge when all tie).
+- Ranking and comparison live in the dependency-free `app-core/similar.mjs`, shared by Node and the Worker.
+- The showroom adds a "You might also like" section to vehicle details, Compare toggles on cards and details (up to three, remembered on the device), a compare bar, and a side-by-side comparison table.
+
 ## 2026-10-22 (Trade-In Details)
 - Inquiries and test-drive requests accept an optional `tradeIn` (year, make, model, condition, plus optional mileage in km, VIN and notes). Values are validated and normalized (VINs upper-cased and checked for 17 valid characters); unknown fields are dropped, and no loan or payoff details are collected.
 - Staff see the trade-in in the lead view, a "Trade-in" line in the leads table, a new CSV column, and a "with a trade-in" note on the lead's first timeline event. Shoppers see their own trade-in under "My request", and deleting a request removes it.

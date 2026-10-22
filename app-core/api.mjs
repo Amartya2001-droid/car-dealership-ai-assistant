@@ -7,6 +7,12 @@ import {
   isBookableTime,
   validateTestDriveHours,
 } from "./schedule.mjs";
+import {
+  MAX_COMPARE,
+  MAX_SIMILAR,
+  compareVehicles,
+  rankSimilar,
+} from "./similar.mjs";
 const json = (data, status = 200, headers = {}) =>
   new Response(JSON.stringify(data), {
     status,
@@ -328,6 +334,38 @@ export async function handleApi(request, env, db) {
     }
     if (path.startsWith("/api/admin/") && !(await staff(request, db)))
       fail(401, "Please sign in to continue.");
+    const similarMatch = path.match(/^\/api\/inventory\/([^/]+)\/similar$/);
+    if (similarMatch && method === "GET") {
+      const raw = url.searchParams.get("limit");
+      const limit = raw === null ? 3 : Number(raw);
+      if (!Number.isInteger(limit) || limit < 1 || limit > MAX_SIMILAR)
+        fail(400, `Choose a limit between 1 and ${MAX_SIMILAR}.`);
+      const vehicles = decode(await db.all("SELECT payload FROM vehicles"));
+      let vehicleId;
+      try {
+        vehicleId = decodeURIComponent(similarMatch[1]);
+      } catch {
+        fail(404, "Vehicle not found.");
+      }
+      const base = vehicles.find((v) => v.id === vehicleId);
+      if (!base) fail(404, "Vehicle not found.");
+      return finish(
+        json({ vehicleId: base.id, similar: rankSimilar(base, vehicles, limit) }),
+      );
+    }
+    if (path === "/api/compare" && method === "GET") {
+      const ids = (url.searchParams.get("ids") || "")
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean);
+      if (ids.length < 2 || ids.length > MAX_COMPARE || new Set(ids).size !== ids.length)
+        fail(400, `Choose 2 to ${MAX_COMPARE} different vehicles to compare.`);
+      const vehicles = decode(await db.all("SELECT payload FROM vehicles"));
+      const chosen = ids.map((vid) => vehicles.find((v) => v.id === vid));
+      if (chosen.some((v) => !v))
+        fail(404, "One of these vehicles is no longer listed.");
+      return finish(json(compareVehicles(chosen)));
+    }
     if (path === "/api/inventory" && method === "GET")
       return finish(
         json({

@@ -995,6 +995,117 @@ td small {
 .slot-picker {
   margin-bottom: 6px;
 }
+.compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: #fff;
+  color: var(--ink);
+  padding: 6px 11px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.compare-toggle.is-on {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.compare-bar {
+  position: fixed;
+  left: 25px;
+  bottom: 23px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 50px;
+  box-shadow: 0 5px 20px #18342620;
+  font-size: 14px;
+}
+.compare-bar .primary {
+  min-height: 38px;
+  padding: 8px 16px;
+}
+.compare-dialog {
+  max-width: 820px !important;
+}
+.compare-table td,
+.compare-table th {
+  vertical-align: top;
+}
+.compare-table th[scope="col"] {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 600;
+  white-space: normal;
+}
+.compare-table th[scope="row"] {
+  background: none;
+  border-top: 1px solid var(--line);
+}
+.compare-table .badge {
+  display: table;
+  margin-top: 6px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.similar {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+}
+.similar-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.similar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.similar-card:hover {
+  border-color: var(--green);
+}
+.similar-card strong {
+  font-size: 14px;
+}
+.similar-card span {
+  font-size: 13px;
+}
+.similar-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .compare-bar {
+    left: 12px;
+    right: 150px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
 .trade-in {
   border: 1px solid var(--line);
   border-radius: 8px;

@@ -204,7 +204,18 @@ export default function Workspace() {
     [slotVersion, setSlotVersion] = useState(0),
     [changing, setChanging] = useState(null),
     [newSlot, setNewSlot] = useState(""),
-    [hasTradeIn, setHasTradeIn] = useState(false);
+    [hasTradeIn, setHasTradeIn] = useState(false),
+    [similar, setSimilar] = useState([]),
+    [compareIds, setCompareIds] = useState(() => {
+      try {
+        const ids = JSON.parse(localStorage.getItem("northstar-compare") || "[]");
+        return Array.isArray(ids) ? ids.slice(0, 3) : [];
+      } catch {
+        return [];
+      }
+    }),
+    [compareOpen, setCompareOpen] = useState(false),
+    [comparison, setComparison] = useState(null);
   const [editVehicle, setEditVehicle] = useState(null),
     [editLead, setEditLead] = useState(null),
     [leadQuery, setLeadQuery] = useState(""),
@@ -213,7 +224,8 @@ export default function Workspace() {
   useEffect(() => {
     if(!isNative()) return;
     const listener=listenBack(() => {
-      if(privacy) setPrivacy(false);
+      if(compareOpen) setCompareOpen(false);
+      else if(privacy) setPrivacy(false);
       else if(chat) setChat(false);
       else if(editLead) setEditLead(null);
       else if(editVehicle) setEditVehicle(null);
@@ -226,7 +238,7 @@ export default function Workspace() {
       else minimize();
     });
     return () => {listener.then(handle=>handle.remove()).catch(()=>{});};
-  },[privacy,chat,editLead,editVehicle,tracking,receipt,booking,selected,login,view]);
+  },[compareOpen,privacy,chat,editLead,editVehicle,tracking,receipt,booking,selected,login,view]);
   const load = useCallback(async () => {
     try {
       const [config, inventory, session] = await Promise.all([
@@ -293,6 +305,51 @@ export default function Workspace() {
       setSlotVersion((v) => v + 1);
     }
     throw e;
+  };
+  useEffect(() => {
+    try {
+      localStorage.setItem("northstar-compare", JSON.stringify(compareIds));
+    } catch {}
+  }, [compareIds]);
+  // Drop compare picks for vehicles that are no longer listed.
+  useEffect(() => {
+    if (!loading)
+      setCompareIds((ids) => ids.filter((id) => vehicles.some((v) => v.id === id)));
+  }, [vehicles, loading]);
+  useEffect(() => {
+    setSimilar([]);
+    if (!selected?.id) return;
+    let current = true;
+    api(`/inventory/${encodeURIComponent(selected.id)}/similar`)
+      .then((result) => current && setSimilar(result.similar))
+      .catch(() => {});
+    return () => {
+      current = false;
+    };
+  }, [selected?.id]);
+  useEffect(() => {
+    if (!compareOpen) return;
+    if (compareIds.length < 2) {
+      setComparison(null);
+      return;
+    }
+    let current = true;
+    api(`/compare?ids=${compareIds.map(encodeURIComponent).join(",")}`)
+      .then((result) => current && setComparison(result))
+      .catch((e) => {
+        if (current) {
+          setComparison(null);
+          toast.error(e.message);
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [compareOpen, compareIds]);
+  const toggleCompare = (id) => {
+    if (compareIds.includes(id)) setCompareIds((ids) => ids.filter((x) => x !== id));
+    else if (compareIds.length >= 3) toast.error("You can compare up to 3 vehicles.");
+    else setCompareIds((ids) => [...ids, id]);
   };
   const toggleSaved = (id) =>
     setSaved((old) =>
@@ -617,13 +674,28 @@ export default function Workspace() {
                           <strong>{price(v.price, cfg.currency)}</strong>
                           <small>{cfg.currency} · Before taxes & fees</small>
                         </div>
-                        <button
-                          className="circle-button"
-                          aria-label={`View details for ${v.make} ${v.model}`}
-                          onClick={() => setSelected(v)}
-                        >
-                          <ArrowUpRight size={21} />
-                        </button>
+                        <div className="row-actions">
+                          <button
+                            className={`compare-toggle ${compareIds.includes(v.id) ? "is-on" : ""}`}
+                            aria-pressed={compareIds.includes(v.id)}
+                            aria-label={`Compare ${v.make} ${v.model}`}
+                            onClick={() => toggleCompare(v.id)}
+                          >
+                            {compareIds.includes(v.id) ? (
+                              <Check size={14} />
+                            ) : (
+                              <Plus size={14} />
+                            )}{" "}
+                            Compare
+                          </button>
+                          <button
+                            className="circle-button"
+                            aria-label={`View details for ${v.make} ${v.model}`}
+                            onClick={() => setSelected(v)}
+                          >
+                            <ArrowUpRight size={21} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -1202,6 +1274,103 @@ export default function Workspace() {
           </main>
         </div>
       )}
+      {view === "shop" && compareIds.length > 0 && (
+        <div className="compare-bar" role="region" aria-label="Vehicle comparison">
+          <span>
+            {compareIds.length} of 3 selected
+          </span>
+          <button
+            className="primary"
+            disabled={compareIds.length < 2}
+            onClick={() => setCompareOpen(true)}
+          >
+            Compare
+          </button>
+          <button className="text-button" onClick={() => setCompareIds([])}>
+            Clear
+          </button>
+        </div>
+      )}
+      <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
+        <DialogContent className="ns-dialog compare-dialog">
+          <DialogHeader>
+            <DialogTitle>Side by side.</DialogTitle>
+            <DialogDescription>
+              Compare up to three vehicles. Prices are before taxes and fees.
+            </DialogDescription>
+          </DialogHeader>
+          {compareIds.length < 2 ? (
+            <p>Add at least two vehicles to compare.</p>
+          ) : !comparison ? (
+            <p className="subtle">Loading comparison…</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="compare-table">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <span className="sr-only">Detail</span>
+                    </th>
+                    {comparison.vehicles.map((v) => (
+                      <th key={v.id} scope="col">
+                        {v.year} {v.make} {v.model}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Price", (v) => price(v.price, cfg.currency), "lowestPrice", "Lowest price"],
+                    ["Year", (v) => v.year, "newest", "Newest"],
+                    ["Mileage", (v) => `${v.mileage.toLocaleString()} km`, "lowestMileage", "Lowest mileage"],
+                    ["Body type", (v) => v.bodyType],
+                    ["Fuel", (v) => v.fuelType],
+                    ["Availability", (v) => (v.inStock ? "Available" : "No longer available")],
+                  ].map(([label, show, key, badge]) => (
+                    <tr key={label}>
+                      <th scope="row">{label}</th>
+                      {comparison.vehicles.map((v) => (
+                        <td key={v.id}>
+                          {show(v)}
+                          {key && comparison.highlights[key].includes(v.id) && (
+                            <span className="badge success">{badge}</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  <tr>
+                    <th scope="row">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                    {comparison.vehicles.map((v) => (
+                      <td key={v.id}>
+                        <div className="row-actions">
+                          <button
+                            className="outlined"
+                            onClick={() => {
+                              setCompareOpen(false);
+                              setSelected(v);
+                            }}
+                          >
+                            View
+                          </button>
+                          <button
+                            className="text-button"
+                            onClick={() => toggleCompare(v.id)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <button
         className="chat-launcher"
         onClick={() => setChat(!chat)}
@@ -1290,6 +1459,18 @@ export default function Workspace() {
                   "Contact the dealership for more details about this vehicle."}
               </p>
               <Estimator vehicle={selected} currency={cfg.currency} />
+              <button
+                className={`compare-toggle ${compareIds.includes(selected.id) ? "is-on" : ""}`}
+                aria-pressed={compareIds.includes(selected.id)}
+                onClick={() => toggleCompare(selected.id)}
+              >
+                {compareIds.includes(selected.id) ? (
+                  <Check size={14} />
+                ) : (
+                  <Plus size={14} />
+                )}{" "}
+                {compareIds.includes(selected.id) ? "In comparison" : "Add to compare"}
+              </button>
               <Button
                 onClick={() => {
                   setBooking(selected);
@@ -1298,6 +1479,26 @@ export default function Workspace() {
               >
                 Request a test drive <ArrowRight size={17} />
               </Button>
+              {similar.length > 0 && (
+                <section className="similar" aria-label="Similar vehicles">
+                  <h3>You might also like</h3>
+                  <div className="similar-list">
+                    {similar.map(({ vehicle: v, reasons }) => (
+                      <button
+                        key={v.id}
+                        className="similar-card"
+                        onClick={() => setSelected(v)}
+                      >
+                        <strong>
+                          {v.year} {v.make} {v.model}
+                        </strong>
+                        <span>{price(v.price, cfg.currency)}</span>
+                        <small>{reasons.slice(0, 2).join(" · ")}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
             </>
           )}
         </DialogContent>

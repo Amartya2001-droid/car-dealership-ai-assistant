@@ -45,7 +45,7 @@ Demo data is saved in the ignored `.demo/` folder and survives restarts. Demo mo
 | --- | --- |
 | Search/filter vehicles by body type and budget | Add and edit vehicle listings |
 | Save a shortlist on your device | Review inquiries and record notes |
-| View details and illustrative payment estimates | Update lead stages and export CSV |
+| View details, payment estimates and similar vehicles; compare up to three | Update lead stages and export CSV |
 | Ask the guided inventory assistant | Confirm, cancel or complete test drives |
 | Submit an inquiry or test-drive request, with optional trade-in details | Configure dealership details and currency |
 | Track, reschedule, cancel or delete a request using its private code | See shopper requests in the same database |
