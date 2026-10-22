@@ -12,11 +12,11 @@ The current local `.env` contains a generated owner password. It is excluded fro
 
 ## Shopper workflows
 
-Browse and filter inventory, save a device-local shortlist, inspect specifications and payment estimates, ask the inventory assistant, submit inquiries or test-drive requests, and track or delete requests with a private code. No shopper account is required. Save the request code: this release does not email it automatically.
+Browse and filter inventory, save a device-local shortlist, inspect specifications and payment estimates, ask the inventory assistant, pick a test-drive time from the open 30-minute slots for a chosen day (`GET /api/availability?date=YYYY-MM-DD`), submit inquiries or test-drive requests, and track or delete requests with a private code. No shopper account is required. Save the request code: this release does not email it automatically.
 
 ## Staff workflows
 
-Sign in, add/edit/hide vehicles, review leads, record notes and lifecycle status, confirm/cancel/complete test drives, export a CSV, and configure dealership contact details and currency. Call or email links open your own communication app. Status changes are visible through the shopper’s request code; this release does not send confirmation notifications automatically.
+Sign in, add/edit/hide vehicles, review leads, record notes and lifecycle status, confirm/cancel/complete test drives, export a CSV, and configure dealership contact details, currency and weekly test-drive hours. Test-drive hours (`testDriveHours`) list opening and closing times per weekday on the hour or half hour, or `null` for closed days; they are interpreted in the dealership time zone (default America/Halifax). Requests outside these hours are rejected. Call or email links open your own communication app. Status changes are visible through the shopper’s request code; this release does not send confirmation notifications automatically.
 
 ## Hosting
 

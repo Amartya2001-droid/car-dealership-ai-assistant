@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { localStore } from "../app-core/local-store.mjs";
 import { handleApi } from "../app-core/api.mjs";
+import { isBookableTime } from "../app-core/schedule.mjs";
 const env = {
   ADMIN_EMAIL: "owner@example.test",
   ADMIN_PASSWORD: "test-strong-password-for-suite",
@@ -76,9 +77,12 @@ const inquiry = {
   email: "customer@example.test",
   message: "Please arrange a test drive.",
 };
+// Next slot inside the default test-drive hours, at least a day ahead.
 const slot = () => {
   const d = new Date(Date.now() + 86400000);
   d.setUTCMinutes(0, 0, 0);
+  while (!isBookableTime(d, { timezone: "America/Halifax" }))
+    d.setTime(d.getTime() + 30 * 60000);
   return d.toISOString();
 };
 test("staff data is protected; cookie is secure, logout revokes access", async (t) => {

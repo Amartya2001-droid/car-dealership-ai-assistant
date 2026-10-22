@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-22 (Test-Drive Availability)
+- Added `GET /api/availability?date=YYYY-MM-DD`, returning the day's 30-minute test-drive slots in the dealership's time zone with each slot marked available or taken (no shopper details are exposed).
+- Added configurable weekly test-drive hours (`testDriveHours` in dealership settings, defaulting to Monday–Friday 9:00–18:00), editable through `PATCH /api/admin/settings` and published through `GET /api/config`.
+- Test-drive requests outside those hours are now rejected before any lead is saved; slot alignment is checked in local time, so half-hour-offset time zones book correctly.
+- Added DST-aware, dependency-free scheduling helpers in `app-core/schedule.mjs`, shared by the Node server and the Worker/D1 deployment.
+
 ## 2026-09-06 (Reliability Fixes)
 - Replaced `Date.now()`-only ids for leads, appointments, and follow-ups with a collision-resistant generator (concurrent requests could previously produce duplicate ids).
 - Logged Supabase fallback failures instead of silently swallowing them — a degraded Supabase connection in production was previously invisible.

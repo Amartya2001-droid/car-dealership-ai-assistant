@@ -1,6 +1,12 @@
 import { readBody } from './body.mjs';
 import { answerQuestion } from "./answers.mjs";
 import { voiceResponse } from "./voice.mjs";
+import {
+  buildDaySlots,
+  defaultTestDriveHours,
+  isBookableTime,
+  validateTestDriveHours,
+} from "./schedule.mjs";
 const json = (data, status = 200, headers = {}) =>
   new Response(JSON.stringify(data), {
     status,
@@ -35,6 +41,7 @@ const defaultSettings = {
   address: "",
   supportEmail: "",
   hours: "Monday–Friday, 9 am–6 pm",
+  testDriveHours: defaultTestDriveHours,
   demo: true,
 };
 async function settings(db) {
@@ -214,6 +221,20 @@ export async function handleApi(request, env, db) {
           ),
         }),
       );
+    if (path === "/api/availability" && method === "GET") {
+      const cfg = await settings(db);
+      const date = url.searchParams.get("date") || "";
+      const probe = buildDaySlots(date, cfg, new Set());
+      const taken = new Set();
+      if (probe.slots.length) {
+        const rows = await db.all(
+          "SELECT scheduled_for FROM appointments WHERE status IN ('requested','confirmed') AND scheduled_for >= ? AND scheduled_for <= ?",
+          [probe.slots[0].start, probe.slots[probe.slots.length - 1].start],
+        );
+        for (const row of rows) taken.add(row.scheduled_for);
+      }
+      return finish(json(buildDaySlots(date, cfg, taken)));
+    }
     if (path === "/api/chat" && method === "POST") {
       await limited(db, `chat:${ip}`, 12);
       const message = text(body.message, "Message", 1500),
@@ -276,8 +297,13 @@ export async function handleApi(request, env, db) {
           +time > Date.now() + 90 * 86400000
         )
           fail(400, "Choose a future time within the next 90 days.");
-        if (time.getUTCMinutes() % 30 !== 0 || time.getUTCSeconds() !== 0 || time.getUTCMilliseconds() !== 0)
+        if (time.getUTCSeconds() !== 0 || time.getUTCMilliseconds() !== 0)
           fail(400, "Choose a time on the hour or half hour.");
+        if (!isBookableTime(time, await settings(db)))
+          fail(
+            400,
+            "That time is outside our test-drive hours. Choose one of the available times.",
+          );
         appointment = {
           id: id(),
           leadId: lead.id,
@@ -386,6 +412,8 @@ export async function handleApi(request, env, db) {
           fail(400, "Unsupported currency.");
         cfg.currency = body.currency;
       }
+      if (body.testDriveHours !== undefined)
+        cfg.testDriveHours = validateTestDriveHours(body.testDriveHours);
       if (body.demo !== undefined) cfg.demo = body.demo === true;
       await db.run(
         "INSERT INTO settings(id,payload) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
