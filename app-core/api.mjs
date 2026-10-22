@@ -13,6 +13,7 @@ import {
   compareVehicles,
   rankSimilar,
 } from "./similar.mjs";
+import { INSIGHT_PERIODS, buildInsights } from "./insights.mjs";
 const json = (data, status = 200, headers = {}) =>
   new Response(JSON.stringify(data), {
     status,
@@ -620,6 +621,22 @@ export async function handleApi(request, env, db) {
           vehicles: decode(await db.all("SELECT payload FROM vehicles")),
           settings: await settings(db),
         }),
+      );
+    }
+    if (path === "/api/admin/insights" && method === "GET") {
+      const raw = url.searchParams.get("days");
+      const days = raw === null ? 30 : Number(raw);
+      if (!INSIGHT_PERIODS.includes(days))
+        fail(400, `Choose a period of ${INSIGHT_PERIODS.join(", ")} days.`);
+      return finish(
+        json(
+          buildInsights({
+            leads: decode(await db.all("SELECT payload FROM leads")),
+            appointments: decode(await db.all("SELECT payload FROM appointments")),
+            vehicles: decode(await db.all("SELECT payload FROM vehicles")),
+            days,
+          }),
+        ),
       );
     }
     if (path === "/api/admin/settings" && method === "PATCH") {

@@ -20,6 +20,7 @@ import {
   Download,
   ShieldCheck,
   Send,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -66,6 +67,14 @@ const tradeInSummary = (t) =>
         .filter(Boolean)
         .join(" · ")
     : "";
+const formatMinutes = (minutes) =>
+  minutes === null || minutes === undefined
+    ? "—"
+    : minutes < 60
+      ? `${Math.round(minutes)} min`
+      : minutes < 48 * 60
+        ? `${(minutes / 60).toFixed(1)} h`
+        : `${(minutes / 1440).toFixed(1)} days`;
 const actorLabel = { shopper: "Shopper", staff: "Staff", phone: "Phone assistant" };
 const activityText = (e, timeZone) => {
   const when = (iso) => (iso ? whenLabel(iso, timeZone) : "an unknown time");
@@ -215,7 +224,9 @@ export default function Workspace() {
       }
     }),
     [compareOpen, setCompareOpen] = useState(false),
-    [comparison, setComparison] = useState(null);
+    [comparison, setComparison] = useState(null),
+    [insightDays, setInsightDays] = useState(30),
+    [insights, setInsights] = useState(null);
   const [editVehicle, setEditVehicle] = useState(null),
     [editLead, setEditLead] = useState(null),
     [leadQuery, setLeadQuery] = useState(""),
@@ -346,6 +357,18 @@ export default function Workspace() {
       current = false;
     };
   }, [compareOpen, compareIds]);
+  // Reload insights when opened, when the period changes, or after a refresh.
+  useEffect(() => {
+    if (view !== "staff" || !auth || active !== "insights") return;
+    let current = true;
+    setInsights(null);
+    api(`/admin/insights?days=${insightDays}`)
+      .then((result) => current && setInsights(result))
+      .catch((e) => current && toast.error(e.message));
+    return () => {
+      current = false;
+    };
+  }, [view, auth, active, insightDays, data]);
   const toggleCompare = (id) => {
     if (compareIds.includes(id)) setCompareIds((ids) => ids.filter((x) => x !== id));
     else if (compareIds.length >= 3) toast.error("You can compare up to 3 vehicles.");
@@ -752,6 +775,7 @@ export default function Workspace() {
             <p className="eyebrow">WORKSPACE</p>
             {[
               ["overview", LayoutDashboard, "Overview"],
+              ["insights", TrendingUp, "Insights"],
               ["leads", Users, "Leads"],
               ["appointments", CalendarDays, "Test drives"],
               ["inventory", CarFront, "Inventory"],
@@ -798,6 +822,7 @@ export default function Workspace() {
                   {
                     {
                       overview: "Your day, in focus.",
+                      insights: "How the showroom is doing.",
                       leads: "Every lead matters.",
                       appointments: "The next test drive.",
                       inventory: "Your showroom.",
@@ -919,6 +944,164 @@ export default function Workspace() {
                       </section>
                     </div>
                   </>
+                )}
+                {active === "insights" && (
+                  <div className="insights">
+                    <div className="insights-toolbar">
+                      <h2>Last {insightDays} days</h2>
+                      <select
+                        aria-label="Insights period"
+                        value={insightDays}
+                        onChange={(e) => setInsightDays(Number(e.target.value))}
+                      >
+                        {[7, 30, 90].map((d) => (
+                          <option key={d} value={d}>
+                            Last {d} days
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {!insights ? (
+                      <Empty
+                        title="Loading insights"
+                        description="Summarizing your saved leads and test drives."
+                      />
+                    ) : (
+                      <>
+                        <div className="metrics">
+                          {[
+                            [
+                              "Leads received",
+                              insights.funnel[0].count,
+                              `${insights.sources.web} online · ${insights.sources.voice} by phone`,
+                            ],
+                            [
+                              "Median first response",
+                              formatMinutes(insights.response.medianMinutes),
+                              `${insights.response.responded} answered · ${insights.response.awaiting} awaiting`,
+                            ],
+                            [
+                              "Test-drive show rate",
+                              insights.testDrives.showRate === null
+                                ? "—"
+                                : `${insights.testDrives.showRate}%`,
+                              `${insights.testDrives.completed} completed of ${insights.testDrives.completed + insights.testDrives.notCompleted} confirmed`,
+                            ],
+                            [
+                              "Won",
+                              insights.funnel[3].count,
+                              insights.funnel[3].percent === null
+                                ? "No leads in this period"
+                                : `${insights.funnel[3].percent}% of leads`,
+                            ],
+                          ].map(([title, value, note]) => (
+                            <div key={title}>
+                              <span>{title}</span>
+                              <strong>{value}</strong>
+                              <small>{note}</small>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="workspace-columns">
+                          <section className="panel">
+                            <div className="panel-heading">
+                              <h2>Conversion funnel</h2>
+                              <span>Furthest stage each lead reached</span>
+                            </div>
+                            <ol className="funnel">
+                              {insights.funnel.map((s) => (
+                                <li key={s.stage}>
+                                  <span className="funnel-label">
+                                    {capitalize(s.stage)}
+                                  </span>
+                                  <span className="funnel-track" aria-hidden="true">
+                                    <span
+                                      className="funnel-bar"
+                                      style={{ width: `${s.percent ?? 0}%` }}
+                                    />
+                                  </span>
+                                  <strong>{s.count}</strong>
+                                  <small>
+                                    {s.percent === null ? "—" : `${s.percent}%`}
+                                  </small>
+                                </li>
+                              ))}
+                            </ol>
+                          </section>
+                          <section className="panel">
+                            <div className="panel-heading">
+                              <h2>Test drives</h2>
+                              <span>Scheduled in this period</span>
+                            </div>
+                            <dl className="insight-list">
+                              {[
+                                ["Completed", insights.testDrives.completed],
+                                ["Confirmed, not marked completed", insights.testDrives.notCompleted],
+                                ["Cancelled", insights.testDrives.cancelled],
+                                ["Past requests never confirmed", insights.testDrives.unconfirmed],
+                                ["Upcoming", insights.testDrives.upcoming],
+                              ].map(([label, value]) => (
+                                <React.Fragment key={label}>
+                                  <dt>{label}</dt>
+                                  <dd>{value}</dd>
+                                </React.Fragment>
+                              ))}
+                            </dl>
+                          </section>
+                        </div>
+                        <section className="panel">
+                          <div className="panel-heading">
+                            <h2>Leads per vehicle</h2>
+                            <span>
+                              {insights.generalInquiries} general{" "}
+                              {insights.generalInquiries === 1 ? "inquiry" : "inquiries"}
+                            </span>
+                          </div>
+                          {insights.leadsPerVehicle.length ? (
+                            <div className="table-scroll">
+                              <table>
+                                <thead>
+                                  <tr>
+                                    <th>Vehicle</th>
+                                    <th>Leads</th>
+                                    <th>Test drives</th>
+                                    <th>Won</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {insights.leadsPerVehicle.map((r) => (
+                                    <tr key={r.vehicleId}>
+                                      <td>
+                                        <strong>{r.vehicleName}</strong>
+                                        {!r.listed && <small>No longer listed</small>}
+                                      </td>
+                                      <td>{r.leads}</td>
+                                      <td>{r.testDrives}</td>
+                                      <td>{r.won}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <Empty
+                              title="No vehicle inquiries yet"
+                              description="Inquiries about specific vehicles in this period will appear here."
+                            />
+                          )}
+                        </section>
+                        <p className="subtle">
+                          Response time runs from the inquiry to the first staff
+                          status change, note or test-drive decision
+                          {insights.response.untracked > 0 &&
+                            ` (${insights.response.untracked} older ${insights.response.untracked === 1 ? "lead has" : "leads have"} no response history)`}
+                          . Show rate is completed test drives out of confirmed
+                          ones whose time has passed; mark drives completed to
+                          keep it accurate.
+                        </p>
+                      </>
+                    )}
+                  </div>
                 )}
                 {active === "leads" && (
                   <section className="panel">

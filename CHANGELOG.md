@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-22 (Staff Insights)
+- Added staff-only `GET /api/admin/insights?days=7|30|90` (default 30), computed in the dependency-free `app-core/insights.mjs`:
+  - **Conversion funnel** — leads received in the period and how many reached contacted, qualified and won, using each lead's status history (a lead later closed still counts for the stages it reached).
+  - **Median first response** — inquiry to first staff action (status change, note or test-drive decision), with answered/awaiting counts; leads saved before the activity timeline are reported as untracked instead of skewing the median.
+  - **Test-drive show rate** — completed ÷ (completed + confirmed drives whose time passed without being marked completed), for drives scheduled in the period; cancellations, never-confirmed past requests and upcoming drives are reported separately.
+  - **Leads per vehicle** — leads, test drives and wins per listing (including vehicles no longer listed), plus general inquiries and web/phone source counts.
+- Insights return aggregates only — no shopper names or contact details.
+- The staff workspace adds an Insights tab with metric tiles, a funnel chart, a test-drive breakdown, a leads-per-vehicle table and a period picker.
+
 ## 2026-10-22 (Similar Vehicles & Compare)
 - Added `GET /api/inventory/:id/similar?limit=1–6` (default 3): in-stock alternatives ranked by body type, fuel type, price (within ±30%), model year and make, each with short reasons such as "Also an SUV" or "Similar price". Works for sold vehicles too, so shoppers can find a replacement.
 - Added `GET /api/compare?ids=a,b[,c]` for two or three distinct listed vehicles, returned in the requested order with "lowest price", "lowest mileage" and "newest" highlights (ties share a badge; no badge when all tie).

@@ -995,6 +995,68 @@ td small {
 .slot-picker {
   margin-bottom: 6px;
 }
+.insights > * + * {
+  margin-top: 24px;
+}
+.insights-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.insights-toolbar h2 {
+  font-size: 22px;
+  margin: 0;
+}
+.funnel {
+  list-style: none;
+  margin: 0;
+  padding: 16px 24px 22px;
+}
+.funnel li {
+  display: grid;
+  grid-template-columns: 90px 1fr 40px 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.funnel-track {
+  height: 10px;
+  border-radius: 6px;
+  background: #edf0ec;
+  overflow: hidden;
+}
+.funnel-bar {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  border-radius: 6px;
+}
+.funnel strong {
+  text-align: right;
+}
+.funnel small {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+.insight-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 16px;
+  margin: 0;
+  padding: 18px 24px 22px;
+  font-size: 14px;
+}
+.insight-list dt {
+  color: var(--muted);
+}
+.insight-list dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
 .compare-toggle {
   display: inline-flex;
   align-items: center;
