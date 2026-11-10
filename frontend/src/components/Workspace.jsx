@@ -226,7 +226,9 @@ export default function Workspace() {
     [compareOpen, setCompareOpen] = useState(false),
     [comparison, setComparison] = useState(null),
     [insightDays, setInsightDays] = useState(30),
-    [insights, setInsights] = useState(null);
+    [insights, setInsights] = useState(null),
+    [insightError, setInsightError] = useState(""),
+    [insightRetry, setInsightRetry] = useState(0);
   const [editVehicle, setEditVehicle] = useState(null),
     [editLead, setEditLead] = useState(null),
     [leadQuery, setLeadQuery] = useState(""),
@@ -362,13 +364,14 @@ export default function Workspace() {
     if (view !== "staff" || !auth || active !== "insights") return;
     let current = true;
     setInsights(null);
+    setInsightError("");
     api(`/admin/insights?days=${insightDays}`)
       .then((result) => current && setInsights(result))
-      .catch((e) => current && toast.error(e.message));
+      .catch((e) => current && setInsightError(e.message));
     return () => {
       current = false;
     };
-  }, [view, auth, active, insightDays, data]);
+  }, [view, auth, active, insightDays, data, insightRetry]);
   const toggleCompare = (id) => {
     if (compareIds.includes(id)) setCompareIds((ids) => ids.filter((x) => x !== id));
     else if (compareIds.length >= 3) toast.error("You can compare up to 3 vehicles.");
@@ -961,7 +964,15 @@ export default function Workspace() {
                         ))}
                       </select>
                     </div>
-                    {!insights ? (
+                    {insightError ? (
+                      <div role="alert">
+                        <Empty title="Could not load insights" description={insightError}>
+                          <Button onClick={() => setInsightRetry((n) => n + 1)}>
+                            Retry insights
+                          </Button>
+                        </Empty>
+                      </div>
+                    ) : !insights ? (
                       <Empty
                         title="Loading insights"
                         description="Summarizing your saved leads and test drives."
