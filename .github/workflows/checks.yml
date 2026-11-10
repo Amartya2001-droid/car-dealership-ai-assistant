@@ -17,5 +17,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run demo:setup
+      - run: npm --prefix frontend test -- --watch=false --runInBand
+        env:
+          CI: 'true'
       - run: npm run build:site
       - run: node scripts/demo-smoke.mjs
