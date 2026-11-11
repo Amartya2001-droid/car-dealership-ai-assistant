@@ -48,9 +48,19 @@ test("a failed insights request ends loading and retry recovers the selected per
     await click("Insights");
     expect(container.querySelector('[role="alert"]').textContent).toContain("Insights temporarily unavailable");
     expect(container.textContent).not.toContain("Loading insights");
+    const period = container.querySelector('select[aria-label="Insights period"]');
+    expect(period).not.toBeNull();
+    await act(async () => {
+      period.value = "7";
+      period.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await click("Retry insights");
+    expect(api).toHaveBeenLastCalledWith("/admin/insights?days=7");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Insights temporarily unavailable");
+    expect(container.textContent).not.toContain("Loading insights");
     failing = false;
     await click("Retry insights");
-    expect(api).toHaveBeenLastCalledWith("/admin/insights?days=30");
+    expect(api).toHaveBeenLastCalledWith("/admin/insights?days=7");
     expect(container.querySelector('[role="alert"]')).toBeNull();
     expect(container.textContent).toContain("Leads received");
   } finally {
