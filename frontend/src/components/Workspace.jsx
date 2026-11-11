@@ -186,7 +186,8 @@ export default function Workspace() {
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [data, setData] = useState(null);
+    [data, setData] = useState(null),
+    [adminError, setAdminError] = useState("");
   const [query, setQuery] = useState(""),
     [type, setType] = useState("All vehicles"),
     [budget, setBudget] = useState(""),
@@ -273,7 +274,9 @@ export default function Workspace() {
     try {
       const result = await api("/admin/overview");
       setData(result);
+      setAdminError("");
     } catch (e) {
+      setAdminError(e.message);
       toast.error(e.message);
       if (e.status === 401) {
         setAuth(false);
@@ -842,7 +845,13 @@ export default function Workspace() {
                 <RefreshCw size={16} /> Refresh
               </button>
             </div>
-            {!data ? (
+            {adminError ? (
+              <div role="alert">
+                <Empty title="Could not load workspace" description={adminError}>
+                  <Button onClick={() => run(loadAdmin)} disabled={busy}>Retry workspace</Button>
+                </Empty>
+              </div>
+            ) : !data ? (
               <Empty
                 title="Loading workspace"
                 description="Retrieving your dealership’s records."

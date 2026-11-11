@@ -68,3 +68,41 @@ test("a failed insights request ends loading and retry recovers the selected per
     container.remove();
   }
 });
+
+test("workspace failures show an error and retry recovers after a second failure", async () => {
+  global.IS_REACT_ACT_ENVIRONMENT = true;
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let failing = true;
+  api.mockImplementation(async path => {
+    if (path === "/config") return { name: "Test dealership", currency: "CAD" };
+    if (path === "/inventory") return { vehicles: [] };
+    if (path === "/auth/session") return { authenticated: true };
+    if (path === "/admin/overview") {
+      if (failing) throw new Error("Workspace temporarily unavailable");
+      return { leads: [], appointments: [], vehicles: [], stats: {} };
+    }
+    throw new Error(`Unexpected API call: ${path}`);
+  });
+  const click = async text => {
+    const button = [...container.querySelectorAll("button")].find(b => b.textContent.trim() === text);
+    expect(button).toBeDefined();
+    await act(async () => button.click());
+  };
+  try {
+    await act(async () => root.render(<Workspace />));
+    await click("Staff workspace");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Workspace temporarily unavailable");
+    expect(container.textContent).not.toContain("Loading workspace");
+    await click("Retry workspace");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Workspace temporarily unavailable");
+    failing = false;
+    await click("Retry workspace");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.textContent).toContain("New leads");
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
