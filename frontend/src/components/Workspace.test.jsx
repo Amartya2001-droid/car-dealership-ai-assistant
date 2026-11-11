@@ -106,3 +106,45 @@ test("workspace failures show an error and retry recovers after a second failure
     container.remove();
   }
 });
+
+test("comparison failures end loading and retry recovers the selected vehicles", async () => {
+  global.IS_REACT_ACT_ENVIRONMENT = true;
+  localStorage.setItem("northstar-compare", JSON.stringify(["a", "b"]));
+  const vehicles = ["a", "b"].map(id => ({ id, year: 2026, make: "Sample", model: id, price: 20000, mileage: 100, inStock: true, bodyType: "SUV", fuelType: "Gasoline", imageUrl: "", description: "Sample vehicle" }));
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let failing = true;
+  api.mockImplementation(async path => {
+    if (path === "/config") return { name: "Test dealership", currency: "CAD" };
+    if (path === "/inventory") return { vehicles };
+    if (path === "/auth/session") return { authenticated: false };
+    if (path === "/compare?ids=a,b") {
+      if (failing) throw new Error("Comparison temporarily unavailable");
+      return { vehicles, highlights: { lowestPrice: [], newest: [], lowestMileage: [] } };
+    }
+    throw new Error(`Unexpected API call: ${path}`);
+  });
+  const click = async text => {
+    const button = [...container.querySelectorAll("button")].find(b => b.textContent.trim() === text);
+    expect(button).toBeDefined();
+    await act(async () => button.click());
+  };
+  try {
+    await act(async () => root.render(<Workspace />));
+    await act(async () => container.querySelector(".compare-bar button").click());
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Comparison temporarily unavailable");
+    expect(container.textContent).not.toContain("Loading comparison");
+    await click("Retry comparison");
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Comparison temporarily unavailable");
+    failing = false;
+    await click("Retry comparison");
+    expect(api).toHaveBeenLastCalledWith("/compare?ids=a,b");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.querySelector('.compare-table')).not.toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+    localStorage.clear();
+  }
+});

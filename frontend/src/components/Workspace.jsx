@@ -226,6 +226,8 @@ export default function Workspace() {
     }),
     [compareOpen, setCompareOpen] = useState(false),
     [comparison, setComparison] = useState(null),
+    [comparisonError, setComparisonError] = useState(""),
+    [comparisonRetry, setComparisonRetry] = useState(0),
     [insightDays, setInsightDays] = useState(30),
     [insights, setInsights] = useState(null),
     [insightError, setInsightError] = useState(""),
@@ -345,6 +347,8 @@ export default function Workspace() {
   }, [selected?.id]);
   useEffect(() => {
     if (!compareOpen) return;
+    setComparison(null);
+    setComparisonError("");
     if (compareIds.length < 2) {
       setComparison(null);
       return;
@@ -354,14 +358,13 @@ export default function Workspace() {
       .then((result) => current && setComparison(result))
       .catch((e) => {
         if (current) {
-          setComparison(null);
-          toast.error(e.message);
+          setComparisonError(e.message);
         }
       });
     return () => {
       current = false;
     };
-  }, [compareOpen, compareIds]);
+  }, [compareOpen, compareIds, comparisonRetry]);
   // Reload insights when opened, when the period changes, or after a refresh.
   useEffect(() => {
     if (view !== "staff" || !auth || active !== "insights") return;
@@ -1504,6 +1507,12 @@ export default function Workspace() {
           </DialogHeader>
           {compareIds.length < 2 ? (
             <p>Add at least two vehicles to compare.</p>
+          ) : comparisonError ? (
+            <div role="alert">
+              <Empty title="Could not load comparison" description={comparisonError}>
+                <Button onClick={() => setComparisonRetry((n) => n + 1)}>Retry comparison</Button>
+              </Empty>
+            </div>
           ) : !comparison ? (
             <p className="subtle">Loading comparison…</p>
           ) : (
