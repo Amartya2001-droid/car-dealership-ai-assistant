@@ -216,6 +216,9 @@ export default function Workspace() {
     [newSlot, setNewSlot] = useState(""),
     [hasTradeIn, setHasTradeIn] = useState(false),
     [similar, setSimilar] = useState([]),
+    [similarError, setSimilarError] = useState(""),
+    [similarLoading, setSimilarLoading] = useState(false),
+    [similarRetry, setSimilarRetry] = useState(0),
     [compareIds, setCompareIds] = useState(() => {
       try {
         const ids = JSON.parse(localStorage.getItem("northstar-compare") || "[]");
@@ -336,15 +339,19 @@ export default function Workspace() {
   }, [vehicles, loading]);
   useEffect(() => {
     setSimilar([]);
+    setSimilarError("");
+    setSimilarLoading(false);
     if (!selected?.id) return;
+    setSimilarLoading(true);
     let current = true;
     api(`/inventory/${encodeURIComponent(selected.id)}/similar`)
       .then((result) => current && setSimilar(result.similar))
-      .catch(() => {});
+      .catch((e) => current && setSimilarError(e.message))
+      .finally(() => current && setSimilarLoading(false));
     return () => {
       current = false;
     };
-  }, [selected?.id]);
+  }, [selected?.id, similarRetry]);
   useEffect(() => {
     if (!compareOpen) return;
     setComparison(null);
@@ -1691,6 +1698,17 @@ export default function Workspace() {
               >
                 Request a test drive <ArrowRight size={17} />
               </Button>
+              {similarLoading && <p role="status">Finding similar vehicles…</p>}
+              {similarError && (
+                <div role="alert">
+                  <Empty title="Could not load similar vehicles" description={similarError}>
+                    <Button onClick={() => setSimilarRetry((n) => n + 1)}>Retry similar vehicles</Button>
+                  </Empty>
+                </div>
+              )}
+              {!similarLoading && !similarError && similar.length === 0 && (
+                <p className="subtle">No similar vehicles are currently listed.</p>
+              )}
               {similar.length > 0 && (
                 <section className="similar" aria-label="Similar vehicles">
                   <h3>You might also like</h3>
