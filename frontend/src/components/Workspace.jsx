@@ -1,5 +1,5 @@
 import {copyText,exportCsv,isNative,listenBack,minimize} from "../lib/native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -206,10 +206,13 @@ export default function Workspace() {
     [tracking, setTracking] = useState(false),
     [trackCode, setTrackCode] = useState(""),
     [trackResult, setTrackResult] = useState(null),
+    [trackResultCode, setTrackResultCode] = useState(""),
+    [trackError, setTrackError] = useState(""),
     [privacy, setPrivacy] = useState(false),
     [chat, setChat] = useState(false),
     [messages, setMessages] = useState([]),
     [chatInput, setChatInput] = useState("");
+  const trackVersion = useRef(0);
   const [bookingSlot, setBookingSlot] = useState(""),
     [slotVersion, setSlotVersion] = useState(0),
     [changing, setChanging] = useState(null),
@@ -315,10 +318,26 @@ export default function Workspace() {
     setChanging(null);
     setNewSlot("");
   }, [trackResult, tracking]);
-  const refreshTracking = async () =>
-    setTrackResult(
-      await api("/request/status", { method: "POST", body: { token: trackCode } }),
-    );
+  const checkTracking = async () => {
+    const version = ++trackVersion.current;
+    const code = trackCode;
+    setTrackResult(null);
+    setTrackError("");
+    try {
+      const result = await api("/request/status", { method: "POST", body: { token: code } });
+      if (version === trackVersion.current) {
+        setTrackResult(result);
+        setTrackResultCode(code);
+      }
+    } catch (e) {
+      if (version === trackVersion.current) setTrackError(e.message);
+    }
+  };
+  const refreshTracking = async () => {
+    const version = trackVersion.current;
+    const result = await api("/request/status", { method: "POST", body: { token: trackResultCode } });
+    if (version === trackVersion.current) setTrackResult(result);
+  };
   // Clears a stale slot choice and reloads availability after a conflict.
   const onSlotConflict = (e, clear) => {
     if (e.status === 409) {
@@ -512,7 +531,9 @@ export default function Workspace() {
           </button>
           <button
             onClick={() => {
+              ++trackVersion.current;
               setTrackResult(null);
+              setTrackError("");
               setTracking(true);
             }}
           >
@@ -1942,7 +1963,10 @@ export default function Workspace() {
           </Button>
         </DialogContent>
       </Dialog>
-      <Dialog open={tracking} onOpenChange={setTracking}>
+      <Dialog open={tracking} onOpenChange={(open) => {
+        if (!open) ++trackVersion.current;
+        setTracking(open);
+      }}>
         <DialogContent className="ns-dialog compact">
           <DialogHeader>
             <DialogTitle>Your request.</DialogTitle>
@@ -1953,23 +1977,22 @@ export default function Workspace() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              run(async () =>
-                setTrackResult(
-                  await api("/request/status", {
-                    method: "POST",
-                    body: { token: trackCode },
-                  }),
-                ),
-              );
+              run(checkTracking);
             }}
           >
             <Field
               label="Request code"
               value={trackCode}
-              onChange={(e) => setTrackCode(e.target.value)}
+              onChange={(e) => {
+                ++trackVersion.current;
+                setTrackCode(e.target.value);
+                setTrackResult(null);
+                setTrackError("");
+              }}
               required
             />
-            <Button disabled={busy}>Check status</Button>
+            <Button disabled={busy}>{trackError ? "Retry status" : "Check status"}</Button>
+            {trackError && <p role="alert">{trackError}</p>}
           </form>
           {trackResult && (
             <div className="tracking-result">
@@ -2014,7 +2037,7 @@ export default function Workspace() {
                             run(async () => {
                               await api("/request/cancel", {
                                 method: "POST",
-                                body: { token: trackCode, appointmentId: a.id },
+                                body: { token: trackResultCode, appointmentId: a.id },
                               });
                               await refreshTracking();
                               toast.success("Your test drive was cancelled");
@@ -2044,7 +2067,7 @@ export default function Workspace() {
                                 await api("/request/reschedule", {
                                   method: "POST",
                                   body: {
-                                    token: trackCode,
+                                    token: trackResultCode,
                                     appointmentId: a.id,
                                     scheduledFor: newSlot,
                                   },
@@ -2083,12 +2106,15 @@ export default function Workspace() {
                     )
                   )
                     run(async () => {
+                      const version = trackVersion.current;
                       await api("/request/delete", {
                         method: "POST",
-                        body: { token: trackCode },
+                        body: { token: trackResultCode },
                       });
-                      setTrackResult(null);
-                      setTrackCode("");
+                      if (version === trackVersion.current) {
+                        setTrackResult(null);
+                        setTrackCode("");
+                      }
                       toast.success(
                         "Your request and personal details were deleted",
                       );
