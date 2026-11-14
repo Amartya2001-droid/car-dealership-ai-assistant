@@ -22,3 +22,27 @@ jobs:
           CI: 'true'
       - run: npm run build:site
       - run: node scripts/demo-smoke.mjs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: e2e/pom.xml
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - name: Selenium end-to-end flows (headless, disposable sample database)
+        timeout-minutes: 5
+        run: bash e2e/run-local.sh
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BIN: ${{ steps.chrome.outputs.chromedriver-path }}
+      - name: Upload Selenium JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-junit-results
+          path: e2e/target/surefire-reports/*.xml
+          if-no-files-found: ignore

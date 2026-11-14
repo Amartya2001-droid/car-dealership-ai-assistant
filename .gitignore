@@ -26,3 +26,5 @@ android/build
 
 frontend/build-android
 .demo/
+
+e2e/target/
