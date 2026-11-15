@@ -451,28 +451,30 @@ export default function Workspace() {
     if (auth) setView("staff");
     else setLogin(true);
   };
-  async function sendChat(message = chatInput) {
+  async function sendChat(message = chatInput, retryIndex = null) {
     if (!message.trim() || busy) return;
-    setChatInput("");
-    setMessages((old) => [...old, { role: "user", text: message }]);
+    const showReply = (reply) => setMessages((old) =>
+      retryIndex === null ? [...old, reply] : old.map((m, i) => i === retryIndex ? reply : m),
+    );
+    if (retryIndex === null) {
+      setChatInput("");
+      setMessages((old) => [...old, { role: "user", text: message }]);
+    } else {
+      showReply({ role: "assistant", text: "Trying again…" });
+    }
     await run(async () => {
       try {
         const result = await api("/chat", {
           method: "POST",
           body: { message },
         });
-        setMessages((old) => [
-          ...old,
-          { role: "assistant", text: result.reply, mode: result.mode },
-        ]);
+        showReply({ role: "assistant", text: result.reply, mode: result.mode });
       } catch (e) {
-        setMessages((old) => [
-          ...old,
-          {
-            role: "assistant",
-            text: "I couldn’t connect. Please try again, or use the inquiry form.",
-          },
-        ]);
+        showReply({
+          role: "assistant",
+          text: "I couldn’t connect. Please try again, or use the inquiry form.",
+          retryMessage: message,
+        });
         throw e;
       }
     });
@@ -2437,8 +2439,14 @@ export default function Workspace() {
               </>
             ) : (
               messages.map((m, i) => (
-                <div key={i} className={`message ${m.role}`}>
+                <div key={i} className={`message ${m.role}`} role={m.retryMessage ? "alert" : undefined}>
                   {m.text}
+                  {m.retryMessage && (
+                    <button type="button" className="text-button" disabled={busy}
+                      onClick={() => sendChat(m.retryMessage, i)}>
+                      Retry message
+                    </button>
+                  )}
                   {m.mode === "guided_fallback" && (
                     <small>Guided answer · Live AI unavailable</small>
                   )}
