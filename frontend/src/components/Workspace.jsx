@@ -2487,7 +2487,8 @@ function SlotPicker({ timeZone, value, onChange, exclude, refresh = 0 }) {
   const today = localDay(timeZone);
   const [date, setDate] = useState(today),
     [day, setDay] = useState(null),
-    [problem, setProblem] = useState("");
+    [problem, setProblem] = useState(""),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
     let current = true;
     setDay(null);
@@ -2498,7 +2499,7 @@ function SlotPicker({ timeZone, value, onChange, exclude, refresh = 0 }) {
     return () => {
       current = false;
     };
-  }, [date, refresh]);
+  }, [date, refresh, retry]);
   const open = (day?.slots || []).filter((s) => s.available && s.start !== exclude);
   return (
     <div className="slot-picker">
@@ -2535,7 +2536,7 @@ function SlotPicker({ timeZone, value, onChange, exclude, refresh = 0 }) {
           );
         })}
       </div>
-      <p className="subtle" role="status">
+      <p className="subtle" role={problem ? "alert" : "status"}>
         {problem
           ? problem
           : !day
@@ -2546,6 +2547,11 @@ function SlotPicker({ timeZone, value, onChange, exclude, refresh = 0 }) {
                 ? "This day is fully booked. Try another date."
                 : `Times are in the dealership’s time zone (${timeZone}). Staff will confirm your request.`}
       </p>
+      {problem && (
+        <button type="button" className="outlined" onClick={() => setRetry((n) => n + 1)}>
+          Retry availability
+        </button>
+      )}
     </div>
   );
 }
