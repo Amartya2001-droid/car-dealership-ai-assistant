@@ -68,6 +68,8 @@ React web interface • Node/Express with SQLite • Worker/D1 deployment option
 
 `npm test` runs isolated backend tests. The [Java 21 + Maven + Selenium/JUnit suite](e2e/README.md) exercises the real shopper and staff app in headless Chrome, including repeated request failures and retry recovery for workspace, insights, and comparison. Run `bash e2e/run-local.sh` after demo setup; CI runs it against a disposable sample database. GitHub Actions builds the interface and exercises the demo's inventory, authentication, inquiry, tracking and deletion flow. The Android source is included; [build and signing instructions](docs/PLAY-RELEASE.md) explain how to connect it to your own public backend.
 
+Request tracking clears previous results when you edit the private code. Failed status lookups show an inline error and can be retried with the same code.
+
 ## Current release scope
 
 - One dealership per deployment and one configured staff owner login.
