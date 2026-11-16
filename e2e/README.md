@@ -29,6 +29,7 @@ Optional `CHROME_BIN` and `CHROMEDRIVER_BIN` select local executables. Maven's `
 ## Coverage and failure injection
 
 - Inventory search and empty results, shortlist persistence, vehicle details, payment estimator and similar vehicles.
+- Showroom refresh failure after creating a listing, repeated failure/retry, and recovery to exactly one real saved listing.
 - Staff inventory creation, price editing and removal from the public showroom by marking unavailable.
 - Shopper booking, staff confirmation, shopper status/cancellation, and deletion of the sample request.
 - Shopper inquiry submission, staff UI sign-in, lead stage/notes persistence and activity, filtered CSV download, and lead deletion.

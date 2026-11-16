@@ -144,12 +144,20 @@ class DealershipTest {
         page.fill("make", "Sample"); page.fill("model", model);
         page.fill("year", "2026"); page.fill("price", "31000"); page.fill("mileage", "100");
         page.fill("description", "Synthetic inventory for browser testing only.");
+        proxy.fail("/api/inventory");
         page.click("Save vehicle");
         page.wait.until(d -> d.findElements(By.cssSelector("[role='dialog']")).isEmpty());
         page.contains(model);
+        page.alert("Temporary E2E service failure");
         page.click("Explore cars");
         page.visible(By.cssSelector("input[aria-label='Search inventory']")).sendKeys(model);
+        page.wait.until(d -> page.cars().isEmpty());
+        int first = proxy.failures(); page.click("Retry showroom");
+        page.wait.until(d -> proxy.failures() > first); page.alert("Temporary E2E service failure");
+        proxy.recover(); page.click("Retry showroom");
+        // The created listing appears exactly once: recovery reloads data, not the saved form.
         page.wait.until(d -> page.cars().size() == 1);
+        page.absent("Could not refresh showroom");
         page.contains("31,000");
         page.click("Staff workspace"); page.click("Inventory");
         page.visible(By.xpath("//tr[contains(., '" + model + "')]//button")).click();

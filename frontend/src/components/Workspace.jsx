@@ -511,6 +511,15 @@ export default function Workspace() {
           You’re offline. Reconnect to view current inventory or send requests.
         </div>
       )}
+      {error && cfg && (
+        <div className="notice" role="alert">
+          <strong>Could not refresh showroom</strong>
+          <p>{error} Displayed showroom details may be out of date.</p>
+          <button type="button" className="outlined" disabled={busy} onClick={() => run(load)}>
+            Retry showroom
+          </button>
+        </div>
+      )}
       <header className="topbar">
         <button className="brand" onClick={() => setView("shop")}>
           <span className="brand-mark">
