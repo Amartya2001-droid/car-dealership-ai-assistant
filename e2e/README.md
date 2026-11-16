@@ -34,6 +34,7 @@ Optional `CHROME_BIN` and `CHROMEDRIVER_BIN` select local executables. Maven's `
 - Shopper inquiry submission, staff UI sign-in, lead stage/notes persistence and activity, filtered CSV download, and lead deletion.
 - Staff workspace initial failure, second retry failure, recovery to real records, and inventory/appointments navigation.
 - Insights failure, seven-day period selection, second failure, retry recovery to real metrics, and return to 30 days.
+- Shopper-assistant repeated failures and retry to a real guided answer, preserving a different draft without duplicate conversation entries.
 - Comparison of real inventory, highlight rows, remove/clear controls, initial failure, repeated failure and retry recovery.
 
 Each test gets a fresh browser and a loopback-only Java reverse proxy. The proxy returns HTTP 503 only for the exact API path selected by that test. Everything else, including successful retry responses, is forwarded to the real app. Retry tests check that another request actually failed before clearing the fault. The proxy rewrites the forwarded Origin to the configured app origin so normal same-origin validation remains enabled. No test-only endpoints or failure switches are added to the app.

@@ -234,6 +234,25 @@ class DealershipTest {
         page.wait.until(d -> d.findElements(By.cssSelector("[aria-label='Vehicle comparison']")).isEmpty());
     }
 
+    @Test void shopperAssistantRetriesTheOriginalQuestionWithoutLosingANewDraft() {
+        proxy.fail("/api/chat");
+        page.visible(By.cssSelector("[aria-label='Open shopper assistant']")).click();
+        page.click("What are your sales hours?");
+        page.alert("I couldn’t connect");
+        WebElement input = page.visible(By.cssSelector("[aria-label='Message to assistant']"));
+        input.sendKeys("A different draft about electric vehicles");
+        int first = proxy.failures(); page.click("Retry message");
+        page.wait.until(d -> proxy.failures() > first); page.alert("I couldn’t connect");
+        proxy.recover(); page.click("Retry message");
+        page.wait.until(d -> d.findElement(By.cssSelector(".chat-panel [aria-label='Send message']")).isEnabled());
+        WebElement answer = page.visible(By.cssSelector(".chat-panel .message.assistant"));
+        assertTrue(answer.getText().contains("Our sales hours are"), "Retry answers the original hours question using the real API");
+        assertEquals("A different draft about electric vehicles", input.getDomProperty("value"));
+        assertEquals(1, driver.findElements(By.cssSelector(".chat-panel .message.user")).size());
+        assertEquals(1, driver.findElements(By.cssSelector(".chat-panel .message.assistant")).size());
+        assertTrue(driver.findElements(By.cssSelector(".chat-panel [role='alert']")).isEmpty());
+    }
+
     @Test void comparisonErrorAndRepeatedRetryRecoverRealComparison() {
         proxy.fail("/api/compare"); page.openComparison();
         page.alert("Temporary E2E service failure"); page.absent("Loading comparison");
