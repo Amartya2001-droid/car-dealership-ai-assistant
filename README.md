@@ -72,6 +72,8 @@ React web interface • Node/Express with SQLite • Worker/D1 deployment option
 
 Request tracking clears previous results when you edit the private code. Failed status lookups show an inline error and can be retried with the same code.
 
+When a staff request reports an expired session, the app hides cached staff records and opens sign-in. Signing in reloads the selected workspace, preserving the insights period.
+
 ## Current release scope
 
 - One dealership per deployment and one configured staff owner login.
