@@ -52,6 +52,8 @@ Demo data is saved in the ignored `.demo/` folder and survives restarts. Demo mo
 
 **Suggested tour:** request a Toyota test drive → save the request code → sign in to Staff → confirm the request → return to My request and see the confirmation. [Full five-minute walkthrough →](docs/TRY-IT.md)
 
+If a showroom refresh fails after a staff edit, the app warns that displayed details may be out of date. Use **Retry showroom** to reload them without repeating the saved edit.
+
 ## How it works
 
 ```mermaid
