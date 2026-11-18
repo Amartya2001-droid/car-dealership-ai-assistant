@@ -213,6 +213,7 @@ export default function Workspace() {
     [messages, setMessages] = useState([]),
     [chatInput, setChatInput] = useState("");
   const trackVersion = useRef(0);
+  const staffVersion = useRef(0);
   const [bookingSlot, setBookingSlot] = useState(""),
     [slotVersion, setSlotVersion] = useState(0),
     [changing, setChanging] = useState(null),
@@ -261,6 +262,19 @@ export default function Workspace() {
     });
     return () => {listener.then(handle=>handle.remove()).catch(()=>{});};
   },[compareOpen,privacy,chat,editLead,editVehicle,tracking,receipt,booking,selected,login,view]);
+  const leaveStaff = useCallback((promptSignIn = true) => {
+    ++staffVersion.current;
+    setToken("");
+    setAuth(false);
+    setData(null);
+    setInsights(null);
+    setInsightError("");
+    setAdminError("");
+    setEditLead(null);
+    setEditVehicle(null);
+    setView("shop");
+    setLogin(promptSignIn);
+  }, []);
   const load = useCallback(async () => {
     try {
       const [config, inventory, session] = await Promise.all([
@@ -279,19 +293,22 @@ export default function Workspace() {
     }
   }, []);
   const loadAdmin = useCallback(async () => {
+    const version = staffVersion.current;
     try {
       const result = await api("/admin/overview");
+      if (version !== staffVersion.current) return;
       setData(result);
       setAdminError("");
     } catch (e) {
+      if (version !== staffVersion.current) return;
       setAdminError(e.message);
       toast.error(e.message);
-      if (e.status === 401) {
-        setAuth(false);
-        setLogin(true);
-      }
+      if (e.status === 401) leaveStaff();
     }
-  }, []);
+  }, [leaveStaff]);
+  useEffect(() => {
+    if (view === "staff" && !auth) leaveStaff();
+  }, [view, auth, leaveStaff]);
   useEffect(() => {
     load();
   }, [load]);
@@ -395,15 +412,20 @@ export default function Workspace() {
   useEffect(() => {
     if (view !== "staff" || !auth || active !== "insights") return;
     let current = true;
+    const version = staffVersion.current;
     setInsights(null);
     setInsightError("");
     api(`/admin/insights?days=${insightDays}`)
-      .then((result) => current && setInsights(result))
-      .catch((e) => current && setInsightError(e.message));
+      .then((result) => current && version === staffVersion.current && setInsights(result))
+      .catch((e) => {
+        if (!current || version !== staffVersion.current) return;
+        if (e.status === 401) leaveStaff();
+        else setInsightError(e.message);
+      });
     return () => {
       current = false;
     };
-  }, [view, auth, active, insightDays, data, insightRetry]);
+  }, [view, auth, active, insightDays, data, insightRetry, leaveStaff]);
   const toggleCompare = (id) => {
     if (compareIds.includes(id)) setCompareIds((ids) => ids.filter((x) => x !== id));
     else if (compareIds.length >= 3) toast.error("You can compare up to 3 vehicles.");
@@ -414,11 +436,13 @@ export default function Workspace() {
       old.includes(id) ? old.filter((x) => x !== id) : [...old, id],
     );
   const run = async (fn) => {
+    const version = staffVersion.current;
     setBusy(true);
     try {
       await fn();
     } catch (e) {
       toast.error(e.message);
+      if (e.status === 401 && auth && version === staffVersion.current) leaveStaff();
     } finally {
       setBusy(false);
     }
@@ -576,7 +600,7 @@ export default function Workspace() {
           vehicles or bookings are represented.
         </div>
       )}
-      {view === "shop" ? (
+      {view === "shop" || !auth ? (
         <main className="shop-main">
           <section className="intro">
             <div>
@@ -851,10 +875,7 @@ export default function Workspace() {
                 onClick={() =>
                   run(async () => {
                     await api("/auth/logout", { method: "POST" });
-                    setToken("");
-                    setAuth(false);
-                    setData(null);
-                    setView("shop");
+                    leaveStaff(false);
                   })
                 }
               >
@@ -1647,6 +1668,7 @@ export default function Workspace() {
                   method: "POST",
                   body,
                 });
+                ++staffVersion.current;
                 setToken(result.token);
                 setAuth(true);
                 setLogin(false);
