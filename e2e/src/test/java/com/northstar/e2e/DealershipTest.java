@@ -81,6 +81,11 @@ class DealershipTest {
     }
 
     @Test void inventorySearchFiltersShortlistAndDetails() {
+        proxy.fail("/api/config"); driver.navigate().refresh();
+        page.contains("We couldn’t connect");
+        int first = proxy.failures(); page.click("Try again");
+        page.wait.until(d -> proxy.failures() > first); page.alert("Temporary E2E service failure");
+        proxy.recover(); page.click("Try again"); page.ready();
         assertTrue(page.cars().size() >= 2, "Use a demo with at least two sample vehicles");
         WebElement search = page.visible(By.cssSelector("input[aria-label='Search inventory']"));
         search.sendKeys("RAV4");

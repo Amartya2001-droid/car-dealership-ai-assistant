@@ -514,10 +514,10 @@ export default function Workspace() {
     );
   if (error && !cfg)
     return (
-      <div className="boot">
+      <div className="boot" aria-busy={busy}>
         <h1>We couldn’t connect</h1>
         <p role="alert">{error}</p>
-        <Button onClick={load}>Try again</Button>
+        <Button disabled={busy} onClick={() => run(load)}>{busy ? "Reconnecting…" : "Try again"}</Button>
       </div>
     );
   const leads = (data?.leads || []).filter(
