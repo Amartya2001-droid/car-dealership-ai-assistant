@@ -41,3 +41,14 @@ Optional `CHROME_BIN` and `CHROMEDRIVER_BIN` select local executables. Maven's `
 Each test gets a fresh browser and a loopback-only Java reverse proxy. The proxy returns HTTP 503 only for the exact API path selected by that test. Everything else, including successful retry responses, is forwarded to the real app. Retry tests check that another request actually failed before clearing the fault. The proxy rewrites the forwarded Origin to the configured app origin so normal same-origin validation remains enabled. No test-only endpoints or failure switches are added to the app.
 
 Assertions use explicit waits rather than fixed sleeps. These tests exercise the browser and local API; they do not validate production hosting, external AI/phone services, or physical Android devices.
+
+## Reconnect gate
+
+`ReconnectGateTest` adds six parameterized browser cases (two test methods × three startup endpoints: `/api/config`, `/api/inventory`, `/api/auth/session`). The original nine `DealershipTest` cases remain unchanged.
+
+- Initial and repeated HTTP 503 failures, followed by a held response: assert **Reconnecting…**, disabled retry, `aria-busy`, and no duplicate request during a click burst; release to the real app response.
+- Dropped HTTP connections and invalid JSON syntax: expose a retryable connection error and recover to the real inventory.
+- Invalid response contracts (null, missing fields, wrong field types and invalid inventory entries): keep the connection-error screen until all startup responses are valid; never publish partial startup state.
+- The app's **real 25-second timeout** runs for each endpoint both before response headers and while consuming an incomplete real JSON body. No fake timers or shorter app timeout are used. Each abort must leave retry enabled and a subsequent real reload must recover.
+
+The test proxy's gates are loopback-only, released on recovery/cleanup, and do not add app fault endpoints or disable authentication limits. CI allows eight minutes for Selenium because the six timeout checks alone use at least 150 seconds. Public reconnect cases do not add staff sign-ins. Tests still use an isolated sample database; they do not establish public-host or inventory/photo-rights acceptance.

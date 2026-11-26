@@ -282,6 +282,17 @@ export default function Workspace() {
         api("/inventory"),
         api("/auth/session"),
       ]);
+      // Commit startup state only after every response can be rendered safely.
+      const validVehicle = (v) => v && typeof v.id === "string" && v.id.length > 0 &&
+        ["make", "model", "bodyType", "fuelType"].every((key) => typeof v[key] === "string") &&
+        ["year", "price", "mileage"].every((key) => Number.isFinite(v[key])) &&
+        typeof v.inStock === "boolean";
+      if (typeof config?.name !== "string" || !config.name.trim() ||
+          typeof config?.currency !== "string" || !/^[A-Z]{3}$/.test(config.currency) ||
+          !Array.isArray(inventory?.vehicles) || !inventory.vehicles.every(validVehicle) ||
+          typeof session?.authenticated !== "boolean") {
+        throw new Error("The server returned invalid showroom data. Please try again.");
+      }
       setCfg(config);
       setVehicles(inventory.vehicles);
       setAuth(session.authenticated);

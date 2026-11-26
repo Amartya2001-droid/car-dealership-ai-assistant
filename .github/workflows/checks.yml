@@ -34,7 +34,8 @@ jobs:
           chrome-version: stable
           install-chromedriver: true
       - name: Selenium end-to-end flows (headless, disposable sample database)
-        timeout-minutes: 5
+        # Includes six real 25-second browser timeout/abort checks.
+        timeout-minutes: 8
         run: bash e2e/run-local.sh
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
