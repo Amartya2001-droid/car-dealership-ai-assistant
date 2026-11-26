@@ -39,7 +39,7 @@ Open **http://localhost:3000**. The terminal prints your demo staff login; retri
 
 Demo data is saved in the ignored `.demo/` folder and survives restarts. Demo mode uses guided answers and disables external AI, phone and calendar services even if you have configured them for another local deployment. Your regular `.env` and `data/` database are not overwritten. To start fresh, stop the demo and remove only `.demo/`, then start it again.
 
-If the initial connection fails, choose **Try again**. It shows **Reconnecting…** and prevents overlapping retries until that attempt finishes; another failure leaves retry available.
+If the initial connection fails, choose **Try again**. It shows **Reconnecting…** and prevents overlapping retries until that attempt finishes; another failure leaves retry available. Invalid or incomplete startup data stays on the connection-error screen until a valid reload succeeds.
 
 ## What you can try
 
